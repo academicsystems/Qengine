@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+
 # include blocks/ directory
 import sys
 sys.path.insert(0, './blocks')
