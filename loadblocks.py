@@ -1,10 +1,10 @@
 import requests
 
 def checkBlockContainer(configuration,name):
-	url = configuration[name]
-	
+	url = ''
 	bounced = False
 	try:
+		url = configuration[name]
 		response = requests.get(url + '/')
 		if response.status_code != 200:
 			bounced = True
