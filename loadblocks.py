@@ -1,10 +1,14 @@
 import requests
 
 def checkBlockContainer(configuration,name):
-	url = ''
+	if name not in configuration:
+		print 'No url in config info for ' + name
+		return False
+	
+	url = configuration[name]
+	
 	bounced = False
 	try:
-		url = configuration[name]
 		response = requests.get(url + '/')
 		if response.status_code != 200:
 			bounced = True
