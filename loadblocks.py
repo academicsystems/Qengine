@@ -4,8 +4,11 @@ def checkBlockContainer(configuration,name):
 	if name not in configuration:
 		print 'No url in config info for ' + name
 		return False
-	
+
 	url = configuration[name]
+	if type(url) is not str:
+		print 'No url in config info for ' + name
+		return False
 	
 	bounced = False
 	try:
