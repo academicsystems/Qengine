@@ -71,6 +71,15 @@ with open('./configuration.yaml','r') as f:
 	except:
 		QENGINE_NO_CACHE = False
 	
+	ENGINEINFO = {}
+	
+	# engine info
+	for key in configuration:
+		if 'ENGINEINFO_' in key:
+			ekey = key.split('_',1)[1]
+			if len(ekey) > 0:
+				ENGINEINFO[ekey] = configuration[key]
+	
 	BLOCKS = lb.loadblocks(configuration)
 
 app = Flask(__name__)
@@ -101,7 +110,7 @@ class SaveToCache(threading.Thread):
 
 @app.route('/info',methods=['GET'])
 def getEngineInfo():
-	engineinfo = {'name':'CU Boulder Computer Science SageMath Engine'}
+	engineinfo = {'engineinfo':ENGINEINFO}
 	return jsonify(engineinfo)
 
 @app.route('/metadata/<string:base>/<string:id>/<string:version>',methods=['GET'])
