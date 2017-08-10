@@ -113,7 +113,7 @@ def getEngineInfo():
 	engineinfo = {'engineinfo':ENGINEINFO}
 	return jsonify(engineinfo)
 
-@app.route('/metadata/<string:base>/<string:id>/<string:version>',methods=['GET'])
+@app.route('/question/<string:base>/<string:id>/<string:version>',methods=['GET'])
 def getQuestionMetadata(base,id,version):
 	qdirname = "./questions/" + urllib.unquote(base) + "/" + urllib.unquote(id) + "/" + urllib.unquote(version)
 	
@@ -126,12 +126,12 @@ def getQuestionMetadata(base,id,version):
 		if file is not None:
 			with open(file,'r') as f:
 				metadata = yaml.load(f.read())
-				return jsonify(metadata)
+				return jsonify({'questionmetadata':metadata})
 		else:
-			nometadata = {'metadata':'none'}
+			nometadata = {'questionmetadata':'none'}
 			return jsonify(nometadata)
 	except:
-		nometadata = {'metadata':'none'}
+		nometadata = {'questionmetadata':'none'}
 		return jsonify(nometadata)
 
 @app.route('/session',methods=['POST'])
