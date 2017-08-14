@@ -11,6 +11,7 @@ from Crypto.Cipher import AES # pycrypto
 import flask
 from flask import Flask
 from flask import jsonify
+from flask import request
 import hashlib
 import json
 import mimetypes
@@ -90,6 +91,18 @@ def log(err):
 	with open('log.txt','a') as file:
 		file.write("%s" % err)
 
+def checkPassKey(enciv):
+	encivArray = enciv.split(':')
+	if len(encivArray) != 2:
+		return False
+	aesObj = AES.new(hashlib.md5(QENGINE_PASSKEY).hexdigest(), AES.MODE_CFB, encivArray[1], segment_size=8)
+	pkmessage = aesObj.decrypt(base64.b64decode(encivArray[0]))
+			
+	if pkmessage != 'success':
+		return False
+	
+	return True
+
 class SaveToCache(threading.Thread):
 	def __init__(self, qenginevars, genfiles, sessionDataPath, sessionDataDir):
 		threading.Thread.__init__(self)
@@ -110,11 +123,33 @@ class SaveToCache(threading.Thread):
 
 @app.route('/info',methods=['GET'])
 def getEngineInfo():
+	# check pass key if set
+	if QENGINE_PASSKEY != None:
+		passKey = request.args.get('passKey')
+		if passKey is None:
+			noaccess = {'error':'passkey is required'}
+			return jsonify(noaccess)
+		else:
+			if not checkPassKey(passKey):
+				noaccess = {'error':'invalid passkey'}
+				return jsonify(noaccess)
+	
 	engineinfo = {'engineinfo':ENGINEINFO}
 	return jsonify(engineinfo)
 
 @app.route('/question/<string:base>/<string:id>/<string:version>',methods=['GET'])
 def getQuestionMetadata(base,id,version):
+	# check pass key if set
+	if QENGINE_PASSKEY != None:
+		passKey = request.args.get('passKey')
+		if passKey is None:
+			noaccess = {'error':'passkey is required'}
+			return jsonify(noaccess)
+		else:
+			if not checkPassKey(passKey):
+				noaccess = {'error':'invalid passkey'}
+				return jsonify(noaccess)
+	
 	qdirname = "./questions/" + urllib.unquote(base) + "/" + urllib.unquote(id) + "/" + urllib.unquote(version)
 	
 	if not os.path.isdir(qdirname):
@@ -351,7 +386,7 @@ def start():
 	stephtml = "<input type='hidden' name='temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt('0')) + "'>"
 	
 	# assemble the final json response. progressInfo is set to the step number, so in this case it's 0, and process() will increment this
-	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':0,'questionSession':qsessionID,'resources':[genfiles]}
+	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':0,'questionSession':qsessionID,'resources':genfiles}
 
 	return jsonify(opData)
 
@@ -512,7 +547,7 @@ def process(sid):
 	aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
 	stephtml = "<input type='hidden' name='temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt(str(step))) + "'>"
 	
-	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':step,'questionEnd':questionEnd,'results':results,'resources':[genfiles]}
+	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':step,'questionEnd':questionEnd,'results':results,'resources':genfiles}
 
 	return jsonify(opData)
 
