@@ -70,7 +70,7 @@ def assemble_question_input(shortcode):
 
 def get_stubs(delimiter,text):
 	stubs = []
-	for line in iter(text.splitlines()):
+	for line in iter(text.splitlines(True)):
 		matches = re.findall(delimiter + '(.*)' + delimiter, line)
 		if len(matches) > 0:
 			for match in matches:
@@ -130,7 +130,7 @@ def get_local_files(filetext,qpath,genfiles):
 # reqvars - dict of vars like: {'namespace':['varname']}
 def get_reqvars(filestr,reqvars):
 	currentvars = []
-	for line in iter(filestr.splitlines()):
+	for line in iter(filestr.splitlines(True)):
 		matches = re.findall('@@(.*?)@@', line)
 		if len(matches) > 0:
 			for match in matches:
@@ -151,7 +151,7 @@ def get_reqvars(filestr,reqvars):
 
 def store_vars_in_html(varblock,qenginevars,salt,iv):
 	vhtml = ''
-	lines = varblock.splitlines()
+	lines = varblock.splitlines(True)
 	for line in lines:
 		aesObj = AES.new(salt, AES.MODE_CFB, iv) # has to be created for each encrypt
 		name = line.strip()
@@ -167,7 +167,7 @@ def store_vars_in_html(varblock,qenginevars,salt,iv):
 def substitute_shortcodes(sblock):
 	delimiter = '~~~'
 	fblock = ''
-	for line in iter(sblock.splitlines()):
+	for line in iter(sblock.splitlines(True)):
 		matches = re.findall(delimiter + '(.*?)' + delimiter, line)
 		if len(matches) > 0:
 			for match in matches:
