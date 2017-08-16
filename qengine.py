@@ -72,6 +72,13 @@ with open('./configuration.yaml','r') as f:
 	except:
 		QENGINE_NO_CACHE = False
 	
+	try:
+		QENGINE_LOG_REQUESTS = configuration['QENGINE_LOG_REQUESTS']
+		if not QENGINE_LOG_REQUESTS:
+			QENGINE_LOG_REQUESTS = False
+	except:
+		QENGINE_LOG_REQUESTS = False
+	
 	ENGINEINFO = {}
 	
 	# engine info
@@ -86,10 +93,6 @@ with open('./configuration.yaml','r') as f:
 app = Flask(__name__)
 
 # helper functions
-
-def log(err):
-	with open('log.txt','a') as file:
-		file.write("%s" % err)
 
 def checkPassKey(enciv):
 	encivArray = enciv.split(':')
@@ -120,6 +123,13 @@ class SaveToCache(threading.Thread):
 				sessionfile.write(base64.b64decode(file['content']))
 
 # routes
+
+@app.before_request
+def log_request():
+	if QENGINE_LOG_REQUESTS:
+		with open('./qlog.txt','a+') as file:
+			file.write("%s%s\n\n" % (request.headers, request.get_json(silent=True)))
+	return None
 
 @app.route('/info',methods=['GET'])
 def getEngineInfo():
@@ -564,7 +574,6 @@ def stop(sid):
 
 @app.route('/<path:badpath>')
 def fallback(badpath):
-	### not implemented yet
 	return flask.make_response('Path Not Found', 404)
 	
 if __name__ == '__main__':
