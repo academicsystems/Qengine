@@ -128,7 +128,7 @@ class SaveToCache(threading.Thread):
 def log_request():
 	if QENGINE_LOG_REQUESTS:
 		with open('./qlog.txt','a+') as file:
-			file.write("%s%s\n\n" % (request.headers, request.get_json(silent=True)))
+			file.write("%s %s\n%s%s\n\n" % (request.method, request.url, request.headers, request.get_json(silent=True)))
 	return None
 
 @app.route('/info',methods=['GET'])
@@ -555,7 +555,7 @@ def process(sid):
 		};
 	
 	aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
-	stephtml = "<input type='hidden' name='temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt(str(step))) + "'>"
+	stephtml = "<input type='hidden' name='%%IDPREFIX%%temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt(str(step))) + "'>"
 	
 	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':step,'questionEnd':questionEnd,'results':results,'resources':genfiles}
 
