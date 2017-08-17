@@ -501,7 +501,7 @@ def process(sid):
 			try:
 				resvar = qhelper.get_stubs('@@',fileblocks.blocks[key][1])[-1]
 				resparts = resvar.split('.')
-				result = qenginevars[resparts[0]][resparts[1]]
+				result = float(qenginevars[resparts[0]][resparts[1]][0])
 			except:
 				result = 0
 		elif fileblocks.blocks[key][0] == 'qhtml':
@@ -524,7 +524,7 @@ def process(sid):
 			"scores" : [
 				{
 					"axis" : "",
-					"marks" : int(result)
+					"marks" : result
 				}
 			]
 		}
