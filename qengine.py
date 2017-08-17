@@ -393,7 +393,7 @@ def start():
 	### FINAL RESPONSE ASSEMBLY ###
 
 	aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
-	stephtml = "<input type='hidden' name='%%IDPREFIX%%temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt('0')) + "'>"
+	stephtml = "<input type='hidden' name='%%IDPREFIX%%qform_data[temp.qengine.step]' value='" + base64.b64encode(aesObj.encrypt('0')) + "'>"
 	
 	# assemble the final json response. progressInfo is set to the step number, so in this case it's 0, and process() will increment this
 	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':0,'questionSession':qsessionID,'resources':genfiles}
@@ -419,7 +419,7 @@ def process(sid):
 	# get variables from form data into qenginevars
 	qenginevars = {}
 	othervars = {}
-	for key, value in formVars.iteritems():
+	for key, value in formVars['qform_data'].iteritems():
 		aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
 		splitkey = key.split('.')
 		if len(splitkey) == 3:
@@ -511,25 +511,19 @@ def process(sid):
 	
 	questionEnd = False
 	if result is not None:
-		if type(result) is not dict:
-			results = {
-				"actionSummary" : '',
-				"answerLine" : '',
-				"attempts" : '',
-				"customResults" : [],
-				"questionLine" : '',
-				"scores" : [
-					{
-						"axis" : "",
-						"marks" : result
-					}
-				]
-			}
-		else:
-			results = result
-			results['attempts'] = step
-			results['questionLine'] = 'fetch from metadata'
-			results['actionSummary'] = '?'
+		results = {
+			"actionSummary" : '',
+			"answerLine" : '',
+			"attempts" : '',
+			"customResults" : [],
+			"questionLine" : '',
+			"scores" : [
+				{
+					"axis" : "",
+					"marks" : result
+				}
+			]
+		}
 		questionEnd = True
 	else:
 		results = ''
@@ -555,7 +549,7 @@ def process(sid):
 		};
 	
 	aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
-	stephtml = "<input type='hidden' name='%%IDPREFIX%%temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt(str(step))) + "'>"
+	stephtml = "<input type='hidden' name='%%IDPREFIX%%qform_data[temp.qengine.step]' value='" + base64.b64encode(aesObj.encrypt(str(step))) + "'>"
 	
 	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':step,'questionEnd':questionEnd,'results':results,'resources':genfiles}
 
