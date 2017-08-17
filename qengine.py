@@ -520,7 +520,7 @@ def process(sid):
 			"scores" : [
 				{
 					"axis" : "",
-					"marks" : result
+					"marks" : float(result)
 				}
 			]
 		}
