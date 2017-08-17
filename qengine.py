@@ -94,6 +94,10 @@ app = Flask(__name__)
 
 # helper functions
 
+def log(message):
+	with open('./qlog.txt','a+') as file:
+		file.write("%s\n\n" % message)
+
 def checkPassKey(enciv):
 	encivArray = enciv.split(':')
 	if len(encivArray) != 2:
@@ -520,7 +524,7 @@ def process(sid):
 			"scores" : [
 				{
 					"axis" : "",
-					"marks" : float(result)
+					"marks" : int(result)
 				}
 			]
 		}
