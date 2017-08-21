@@ -34,11 +34,16 @@ import qhelper
 
 # start up & load configuration
 
+def log(message):
+	with open('./qlog.txt','a+') as file:
+		file.write("%s\n\n" % message)
+
 def loadConfigOption(key,default,configuration):
 	try:
 		value = configuration[key]
-		if len(value) == 0:
-			value = default
+		if type(value) is str:
+			if len(value) == 0:
+				value = default
 	except:
 		value = default
 	
@@ -87,10 +92,6 @@ with open('./configuration.yaml','r') as f:
 app = Flask(__name__)
 
 # helper functions
-
-def log(message):
-	with open('./qlog.txt','a+') as file:
-		file.write("%s\n\n" % message)
 
 def checkPassKey(enciv):
 	encivArray = enciv.split(':')
@@ -421,9 +422,8 @@ def process(sid):
 		for key, value in formVars.iteritems():
 			aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
 			if QENGINE_MOODLE_HACKS:
-				splitkey = key.split('_')
-			else:
-				splitkey = key.split('.')
+				key = key.replace('_','.')
+			splitkey = key.split('.')
 			if len(splitkey) == 3:
 				# base64 encoded & encrypted stored variable
 				if splitkey[1] in qenginevars:
