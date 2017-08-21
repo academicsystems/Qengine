@@ -24,13 +24,13 @@ def assemble_question_input(shortcode):
 	# 1 -> name, 3 -> type, 5 -> extra
 	input = ['<input name="','','" type="','','" ','',' >']
 	
-	input[1] = '%%IDPREFIX%%qform_data[' + parts[0] + ']'
+	input[1] = '%%IDPREFIX%%' + parts[0]
 	
 	itype = parts[1].lower()
 	if itype == 'checkbox':
-		olabel = '<label style="display:block" for="%%IDPREFIX%%qform_data[' + parts[0] + ']">'
+		olabel = '<label style="display:block" for="%%IDPREFIX%%' + parts[0] + '">'
 		input[3] = 'checkbox'
-		input[5] = 'id="%%IDPREFIX%%qform_data[' + parts[0] + ']" value="' + parts[2].split(',')[0] + '"'
+		input[5] = 'id="%%IDPREFIX%%' + parts[0] + '" value="' + parts[2].split(',')[0] + '"'
 		finput = olabel + ''.join(input) + parts[2].split(',')[1] + '</label>'
 	elif itype == 'text':
 		input[3] = 'text'
@@ -41,14 +41,14 @@ def assemble_question_input(shortcode):
 		input[5] = 'placeholder="' + parts[2] + '"'
 		finput = ''.join(input)
 	elif itype == 'select':
-		oselect = '<select style="width:100%" name="%%IDPREFIX%%qform_data[' + parts[0] + ']">'
+		oselect = '<select style="width:100%" name="%%IDPREFIX%%' + parts[0] + '">'
 		alloptions = ''
 		options = parts[2].split(',')
 		for option in options:
 			alloptions += '<option>' + option + '</option>'
 		finput = oselect + alloptions + '</select>'
 	elif itype == 'multiple':
-		oselect = '<select style="width:100%" name="%%IDPREFIX%%qform_data[' + parts[0] + '][]" multiple>'
+		oselect = '<select style="width:100%" name="%%IDPREFIX%%' + parts[0] + '[]" multiple>'
 		alloptions = ''
 		options = parts[2].split(',')
 		for option in options:
@@ -160,7 +160,7 @@ def store_vars_in_html(varblock,qenginevars,salt,iv):
 			value = str(qenginevars[nparts[1]][nparts[2]][0])
 		except:
 			value = '' # invalid variable name or requested variable doesn't exist
-		vhtml += "<input type='hidden' name='%%IDPREFIX%%qform_data[" + name + "]' value='" + base64.b64encode(aesObj.encrypt(value)) + "'>"
+		vhtml += "<input type='hidden' name='%%IDPREFIX%%" + name + "' value='" + base64.b64encode(aesObj.encrypt(value)) + "'>"
 	
 	return vhtml
 

@@ -34,6 +34,16 @@ import qhelper
 
 # start up & load configuration
 
+def loadConfigOption(key,default,configuration):
+	try:
+		value = configuration[key]
+		if len(value) == 0:
+			value = default
+	except:
+		value = default
+	
+	return value
+
 with open('./configuration.yaml','r') as f:
 	configuration = yaml.load(f.read())
 	
@@ -58,26 +68,10 @@ with open('./configuration.yaml','r') as f:
 		QENGINE_IV = ''.join(choice(ascii_uppercase) for i in range(16))
 	
 	# optional environment variables
-	try:
-		QENGINE_PASSKEY = configuration['QENGINE_PASSKEY']
-		if len(QENGINE_PASSKEY) == 0:
-			QENGINE_PASSKEY = None
-	except:
-		QENGINE_PASSKEY = None
-	
-	try:
-		QENGINE_NO_CACHE = configuration['QENGINE_NO_CACHE']
-		if not QENGINE_NO_CACHE:
-			QENGINE_NO_CACHE = False
-	except:
-		QENGINE_NO_CACHE = False
-	
-	try:
-		QENGINE_LOG_REQUESTS = configuration['QENGINE_LOG_REQUESTS']
-		if not QENGINE_LOG_REQUESTS:
-			QENGINE_LOG_REQUESTS = False
-	except:
-		QENGINE_LOG_REQUESTS = False
+	QENGINE_LOG_REQUESTS = loadConfigOption('QENGINE_LOG_REQUESTS',False,configuration)
+	QENGINE_MOODLE_HACKS = loadConfigOption('QENGINE_MOODLE_HACKS',False,configuration)
+	QENGINE_NO_CACHE = loadConfigOption('QENGINE_NO_CACHE',False,configuration)
+	QENGINE_PASSKEY = loadConfigOption('QENGINE_PASSKEY',None,configuration)
 	
 	ENGINEINFO = {}
 	
@@ -423,29 +417,36 @@ def process(sid):
 	# get variables from form data into qenginevars
 	qenginevars = {}
 	othervars = {}
-	for key, value in formVars['qform_data'].iteritems():
-		aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
-		splitkey = key.split('.')
-		if len(splitkey) == 3:
-			# base64 encoded & encrypted stored variable
-			if splitkey[1] in qenginevars:
-				qenginevars[splitkey[1]][splitkey[2]] = [aesObj.decrypt(base64.b64decode(value))] # has to be created for each decrypt
+	try:
+		for key, value in formVars.iteritems():
+			aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
+			if QENGINE_MOODLE_HACKS:
+				splitkey = key.split('_')
 			else:
-				qenginevars[splitkey[1]]= {}
-				qenginevars[splitkey[1]][splitkey[2]] = [aesObj.decrypt(base64.b64decode(value))] # has to be created for each decrypt
-			
-			## !! splitkey[0] -> perm or temp, if perm : do something...
-			
-		elif len(splitkey) == 2:
-			# some variable entered by student or manually created in qhtml
-			if splitkey[0] in qenginevars:
-				qenginevars[splitkey[0]][splitkey[1]] = [value]
+				splitkey = key.split('.')
+			if len(splitkey) == 3:
+				# base64 encoded & encrypted stored variable
+				if splitkey[1] in qenginevars:
+					qenginevars[splitkey[1]][splitkey[2]] = [aesObj.decrypt(base64.b64decode(value))] # has to be created for each decrypt
+				else:
+					qenginevars[splitkey[1]]= {}
+					qenginevars[splitkey[1]][splitkey[2]] = [aesObj.decrypt(base64.b64decode(value))] # has to be created for each decrypt
+				
+				## !! splitkey[0] -> perm or temp, if perm : do something...
+				
+			elif len(splitkey) == 2:
+				# some variable entered by student or manually created in qhtml
+				if splitkey[0] in qenginevars:
+					qenginevars[splitkey[0]][splitkey[1]] = [value]
+				else:
+					qenginevars[splitkey[0]] = {}
+					qenginevars[splitkey[0]][splitkey[1]] = [value]
 			else:
-				qenginevars[splitkey[0]] = {}
-				qenginevars[splitkey[0]][splitkey[1]] = [value]
-		else:
-			# this is either something the LMS passed or an improperly formatted question variable
-			othervars[key] = value
+				# this is either something the LMS passed or an improperly formatted question variable
+				othervars[key] = value
+	except Exception as e:
+		# this indicates a fatal error, as temp.qengine.step should always exist (at least one formVars value)
+		log(str(e))
 	
 	# parse next step in question
 	step = int(qenginevars['qengine']['step'][0]) + 1
