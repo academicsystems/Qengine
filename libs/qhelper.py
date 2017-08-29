@@ -22,7 +22,7 @@ def assemble_question_input(shortcode):
 		return ''
 	
 	# 1 -> name, 3 -> type, 5 -> extra
-	input = ['<input name="','','" type="','','" ','',' >']
+	input = ['<input name="','','" type="','','" ','',' style="width:100%">']
 	
 	input[1] = '%%IDPREFIX%%' + parts[0]
 	
@@ -89,6 +89,50 @@ def setifset(obj,key):
 ###
 ###
 ### functions used in Qengine + Blocks
+
+def add_to_reqvars(variable,reqvars):
+	splitvar = variable.split('.')
+	
+	if(len(splitvar) != 2):
+		return reqvars
+	if splitvar[0] not in reqvars:
+		reqvars[splitvar[0]] = []
+	if splitvar[1] not in reqvars[splitvar[0]]:
+		reqvars[splitvar[0]].append(splitvar[1])
+	
+	return reqvars
+
+def check_conditional(bcond,vars):
+	keys = bcond.split('.')
+	
+	if len(keys) != 2:
+		# error
+		return False
+	
+	try:
+		procBlock = vars[keys[0]][keys[1]][0]
+		
+		# check falsy string values
+		if procBlock.lower() == 'true':
+			return True
+		if procBlock == '[]':
+			return True
+		if procBlock == '{}':
+			return True
+		
+		# check integers
+		if procBlock.isalnum():
+			if int(procBlock):
+				return True
+		
+		# check floats
+		if re.match("^\d+?\.\d+?$", procBlock) is not None:
+			if float(procBlock):
+				return True
+	except:
+		return False
+	
+	return False
 
 def get_first_file(filename):
 	files = glob.glob(filename + "*")

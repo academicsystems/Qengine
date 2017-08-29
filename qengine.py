@@ -306,6 +306,10 @@ def start():
 	
 	# get all requested variables here
 	for key in fileblocks.blocks:
+		# check block for conditional
+		if fileblocks.blocks[key][2] is not None:
+			reqvars = qhelper.add_to_reqvars(fileblocks.blocks[key][2],reqvars)
+		
 		# grab vars from html & put in reqvars by namespace
 		reqvars = qhelper.get_reqvars(fileblocks.blocks[key][1],reqvars)
 		if reqvars is None:
@@ -367,20 +371,27 @@ def start():
 	qhtml = ''
 	# block: qstore
 	vhtml = ''
-
+	
 	# grab content from different blocks, add reqvars, and get any requested files if cache didn't work
 	for key in fileblocks.order:
-		if fileblocks.blocks[key][0] == 'qcss':
-			qcss += qhelper.substitute_vars(fileblocks.blocks[key][1],qenginevars)
-		elif fileblocks.blocks[key][0] == 'files':
-			qhelper.get_local_files(fileblocks.blocks[key][1],qpath,genfiles)
-		elif fileblocks.blocks[key][0] == 'qhtml':
-			qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1]),qenginevars)
-		elif fileblocks.blocks[key][0] == 'qstore':
-			vhtml += qhelper.store_vars_in_html(fileblocks.blocks[key][1],qenginevars,QENGINE_SALT,QENGINE_IV)
-		elif fileblocks.blocks[key][0] in BLOCKS:
-			if not existingQSID:
-				BLOCKS[fileblocks.blocks[key][0]](key,fileblocks.blocks[key][1],reqvars,qenginevars,cachedresources,genfiles)
+		
+		# check if block has conditional variable to determine if it should be run
+		procBlock = True
+		if fileblocks.blocks[key][2] is not None:
+			procBlock = qhelper.check_conditional(fileblocks.blocks[key][2],qenginevars)
+		
+		if procBlock:
+			if fileblocks.blocks[key][0] == 'qcss':
+				qcss += qhelper.substitute_vars(fileblocks.blocks[key][1],qenginevars)
+			elif fileblocks.blocks[key][0] == 'files':
+				qhelper.get_local_files(fileblocks.blocks[key][1],qpath,genfiles)
+			elif fileblocks.blocks[key][0] == 'qhtml':
+				qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1]),qenginevars)
+			elif fileblocks.blocks[key][0] == 'qstore':
+				vhtml += qhelper.store_vars_in_html(fileblocks.blocks[key][1],qenginevars,QENGINE_SALT,QENGINE_IV)
+			elif fileblocks.blocks[key][0] in BLOCKS:
+				if not existingQSID:
+					BLOCKS[fileblocks.blocks[key][0]](key,fileblocks.blocks[key][1],reqvars,qenginevars,cachedresources,genfiles)
 	
 	### SAVE DATA TO CACHE ###
 	
@@ -390,20 +401,20 @@ def start():
 		cachethread.start()
 	
 	### FINAL RESPONSE ASSEMBLY ###
-
+	
 	aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
 	stephtml = "<input type='hidden' name='%%IDPREFIX%%temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt('0')) + "'>"
 	
 	# assemble the final json response. progressInfo is set to the step number, so in this case it's 0, and process() will increment this
 	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':0,'questionSession':qsessionID,'resources':genfiles}
-
+	
 	return jsonify(opData)
 
 @app.route('/session/<path:sid>',methods=['POST'])
 def process(sid):
 	
 	### INCOMING DATA ###
-
+	
 	data = flask.request.get_json()
 	if data is None:
 		try:
@@ -414,7 +425,7 @@ def process(sid):
 	
 	# whatever inputs were in qhtml & whatever variables were in a {% qstore block, will be found here now
 	formVars = dict(zip(data['names'],data['values']))
-
+	
 	# get variables from form data into qenginevars
 	qenginevars = {}
 	othervars = {}
@@ -469,6 +480,10 @@ def process(sid):
 	
 	# get all requested variables here
 	for key in fileblocks.blocks:
+		# check block for conditional
+		if fileblocks.blocks[key][2] is not None:
+			reqvars = qhelper.add_to_reqvars(fileblocks.blocks[key][2],reqvars)
+		
 		# grab vars from html & put in reqvars by namespace
 		reqvars = qhelper.get_reqvars(fileblocks.blocks[key][1],reqvars)
 		if reqvars is None:
@@ -494,23 +509,29 @@ def process(sid):
 	result = None
 	cachedresources = {}
 	for key in fileblocks.order:
-		if fileblocks.blocks[key][0] == 'qcss':
-			qcss += qhelper.substitute_vars(fileblocks.blocks[key][1],qenginevars)
-		elif fileblocks.blocks[key][0] == 'files':
-			qhelper.get_local_files(fileblocks.blocks[key][1],qpath,genfiles)
-		elif fileblocks.blocks[key][0] == 'qans':
-			try:
-				resvar = qhelper.get_stubs('@@',fileblocks.blocks[key][1])[-1]
-				resparts = resvar.split('.')
-				result = float(qenginevars[resparts[0]][resparts[1]][0])
-			except:
-				result = 0
-		elif fileblocks.blocks[key][0] == 'qhtml':
-			qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1]),qenginevars)
-		elif fileblocks.blocks[key][0] == 'qstore':
-			vhtml += qhelper.store_vars_in_html(fileblocks.blocks[key][1],qenginevars,QENGINE_SALT,QENGINE_IV)
-		elif fileblocks.blocks[key][0] in BLOCKS:
-				BLOCKS[fileblocks.blocks[key][0]](key,fileblocks.blocks[key][1],reqvars,qenginevars,cachedresources,genfiles)
+		# check if block has conditional variable to determine if it should be run
+		procBlock = True
+		if fileblocks.blocks[key][2] is not None:
+			procBlock = qhelper.check_conditional(fileblocks.blocks[key][2],qenginevars)
+		
+		if procBlock:
+			if fileblocks.blocks[key][0] == 'qcss':
+				qcss += qhelper.substitute_vars(fileblocks.blocks[key][1],qenginevars)
+			elif fileblocks.blocks[key][0] == 'files':
+				qhelper.get_local_files(fileblocks.blocks[key][1],qpath,genfiles)
+			elif fileblocks.blocks[key][0] == 'qans':
+				try:
+					resvar = qhelper.get_stubs('@@',fileblocks.blocks[key][1])[-1]
+					resparts = resvar.split('.')
+					result = float(qenginevars[resparts[0]][resparts[1]][0])
+				except:
+					result = 0
+			elif fileblocks.blocks[key][0] == 'qhtml':
+				qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1]),qenginevars)
+			elif fileblocks.blocks[key][0] == 'qstore':
+				vhtml += qhelper.store_vars_in_html(fileblocks.blocks[key][1],qenginevars,QENGINE_SALT,QENGINE_IV)
+			elif fileblocks.blocks[key][0] in BLOCKS:
+					BLOCKS[fileblocks.blocks[key][0]](key,fileblocks.blocks[key][1],reqvars,qenginevars,cachedresources,genfiles)
 	
 	### FINAL RESPONSE ASSEMBLY
 	
@@ -557,7 +578,7 @@ def process(sid):
 	stephtml = "<input type='hidden' name='%%IDPREFIX%%temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt(str(step))) + "'>"
 	
 	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':step,'questionEnd':questionEnd,'results':results,'resources':genfiles}
-
+	
 	return jsonify(opData)
 
 @app.route('/session/<path:sid>',methods=['DELETE'])
