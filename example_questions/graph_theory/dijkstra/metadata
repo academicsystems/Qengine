@@ -1,0 +1,4 @@
+category: graph theory
+question: dijkstra's algorithm
+details: asks student to find shortest path in a weighted undirected graph
+purpose: a simple question to demonstrate Qengine
