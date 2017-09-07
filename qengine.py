@@ -306,11 +306,16 @@ def start():
 	
 	# get all requested variables here
 	for key in fileblocks.blocks:
-		# check block for conditional
+		# check block for conditional and add conditional to reqvars
 		if fileblocks.blocks[key][2] is not None:
 			reqvars = qhelper.add_to_reqvars(fileblocks.blocks[key][2],reqvars)
 		
-		# grab vars from html & put in reqvars by namespace
+		# get reqvars for store block
+		if fileblocks.blocks[key][0] == 'qstore':
+			reqvars = qhelper.get_qstore_vars(fileblocks.blocks[key][1],reqvars)
+			continue
+		
+		# search for reqvar and add to reqvars
 		reqvars = qhelper.get_reqvars(fileblocks.blocks[key][1],reqvars)
 		if reqvars is None:
 			badfile = {'error':'invalid variable name in block, must be: blockname.name'}
@@ -391,7 +396,10 @@ def start():
 				vhtml += qhelper.store_vars_in_html(fileblocks.blocks[key][1],qenginevars,QENGINE_SALT,QENGINE_IV)
 			elif fileblocks.blocks[key][0] in BLOCKS:
 				if not existingQSID:
-					BLOCKS[fileblocks.blocks[key][0]](key,fileblocks.blocks[key][1],reqvars,qenginevars,cachedresources,genfiles)
+					try:
+						BLOCKS[fileblocks.blocks[key][0]](key,fileblocks.blocks[key][1],reqvars,qenginevars,cachedresources,genfiles)
+					except Exception as e:
+						log(str(e))
 	
 	### SAVE DATA TO CACHE ###
 	
@@ -405,8 +413,36 @@ def start():
 	aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
 	stephtml = "<input type='hidden' name='%%IDPREFIX%%temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt('0')) + "'>"
 	
+	# assemble final html with mathjax included
+	mjaxjs = """<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML' type='text/javascript'></script><script type='text/x-mathjax-config'>MathJax.Hub.Config({mml2jax:{processClass:'qengine_mml2',ignoreClass:'body'},asciimath2jax:{processClass:'qengine_asciimath',ignoreClass:'body'},tex2jax:{processClass:'qengine_latex',ignoreClass:'body'},messageStyle:'none',jax:['input/TeX','output/HTML-CSS'],displayAlign:'left'});</script>""";
+	
+	mjaxrender = """<script>var e=document.getElementsByClassName("qengine_asciimath");for(var t in e)e[t].hasOwnProperty(t)||(e[t].innerHTML="`"+e[t].textContent+"`",MathJax.Hub.Queue(["Typeset",MathJax.Hub,e[t]]));var a=document.getElementsByClassName("qengine_latex");for(var t in a)a[t].hasOwnProperty(t)||(a[t].innerHTML="$$"+a[t].textContent+"$$",MathJax.Hub.Queue(["Typeset",MathJax.Hub,a[t]]));var n=document.getElementsByClassName("qengine_mml");for(var t in n)n[t].hasOwnProperty(t)||MathJax.Hub.Queue(["Typeset",MathJax.Hub,n[t]])</script>"""
+	
+	# not minified version:
+	'''
+var asciimath_divs = document.getElementsByClassName('qengine_asciimath');
+for(var key in asciimath_divs) {
+	if(asciimath_divs[key].hasOwnProperty(key)) continue;
+	asciimath_divs[key].innerHTML = '`' + asciimath_divs[key].textContent + '`';
+	MathJax.Hub.Queue(['Typeset',MathJax.Hub,asciimath_divs[key]]);
+}
+var latex_divs = document.getElementsByClassName('qengine_latex');
+for(var key in latex_divs) {
+	if(latex_divs[key].hasOwnProperty(key)) continue;
+	latex_divs[key].innerHTML = '$$' + latex_divs[key].textContent + '$$';
+	MathJax.Hub.Queue(['Typeset',MathJax.Hub,latex_divs[key]]);
+}
+var mml_divs = document.getElementsByClassName('qengine_mml');
+for(var key in mml_divs) {
+	if(mml_divs[key].hasOwnProperty(key)) continue;
+	MathJax.Hub.Queue(['Typeset',MathJax.Hub,mml_divs[key]]);
+}</script>
+	'''
+	
+	xhtml = mjaxjs + qhtml + vhtml + stephtml + mjaxrender;
+	
 	# assemble the final json response. progressInfo is set to the step number, so in this case it's 0, and process() will increment this
-	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':0,'questionSession':qsessionID,'resources':genfiles}
+	opData = {'CSS':qcss,'XHTML':xhtml,'progressInfo':0,'questionSession':qsessionID,'resources':genfiles}
 	
 	return jsonify(opData)
 
@@ -459,6 +495,8 @@ def process(sid):
 		# this indicates a fatal error, as temp.qengine.step should always exist (at least one formVars value)
 		log(str(e))
 	
+	### DETERMINE AND GET QUESTION STEP ###
+	
 	# parse next step in question
 	step = int(qenginevars['qengine']['step'][0]) + 1
 	
@@ -470,6 +508,21 @@ def process(sid):
 	
 	qfile = qhelper.get_first_file('./questions/' + '/'.join(pathList) + '/question')
 	
+	# check for question submit button
+	try:
+		with open(qfile) as f:
+			filedata = f.read()
+			matches = re.findall('@@@@(.*)', filedata)
+			check = matches[step-1].split('.')
+			if check[0] in qenginevars:
+				if check[1] not in qenginevars[check[0]]:
+					step = step - 1
+			else:
+				step = step - 1
+	except:
+		step = step - 1
+	
+	# open and parse next step in question
 	fileblocks = parseblocks.Blocks()
 	fileblocks.parseFile(qfile,step)
 	
@@ -483,6 +536,11 @@ def process(sid):
 		# check block for conditional
 		if fileblocks.blocks[key][2] is not None:
 			reqvars = qhelper.add_to_reqvars(fileblocks.blocks[key][2],reqvars)
+		
+		# get reqvars for store block
+		if fileblocks.blocks[key][0] == 'qstore':
+			reqvars = qhelper.get_qstore_vars(fileblocks.blocks[key][1],reqvars)
+			continue
 		
 		# grab vars from html & put in reqvars by namespace
 		reqvars = qhelper.get_reqvars(fileblocks.blocks[key][1],reqvars)
@@ -531,7 +589,10 @@ def process(sid):
 			elif fileblocks.blocks[key][0] == 'qstore':
 				vhtml += qhelper.store_vars_in_html(fileblocks.blocks[key][1],qenginevars,QENGINE_SALT,QENGINE_IV)
 			elif fileblocks.blocks[key][0] in BLOCKS:
+				try:
 					BLOCKS[fileblocks.blocks[key][0]](key,fileblocks.blocks[key][1],reqvars,qenginevars,cachedresources,genfiles)
+				except Exception as e:
+					log(str(e))
 	
 	### FINAL RESPONSE ASSEMBLY
 	
@@ -577,7 +638,35 @@ def process(sid):
 	aesObj = AES.new(QENGINE_SALT, AES.MODE_CFB, QENGINE_IV)
 	stephtml = "<input type='hidden' name='%%IDPREFIX%%temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt(str(step))) + "'>"
 	
-	opData = {'CSS':qcss,'XHTML':qhtml + vhtml + stephtml,'progressInfo':step,'questionEnd':questionEnd,'results':results,'resources':genfiles}
+	# assemble final html with mathjax included
+	mjaxjs = """<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML' type='text/javascript'></script><script type='text/x-mathjax-config'>MathJax.Hub.Config({mml2jax:{processClass:'qengine_mml2',ignoreClass:'body'},asciimath2jax:{processClass:'qengine_asciimath',ignoreClass:'body'},tex2jax:{processClass:'qengine_latex',ignoreClass:'body'},messageStyle:'none',jax:['input/TeX','output/HTML-CSS'],displayAlign:'left'});</script>""";
+	
+	mjaxrender = """<script>var e=document.getElementsByClassName("qengine_asciimath");for(var t in e)e[t].hasOwnProperty(t)||(e[t].innerHTML="`"+e[t].textContent+"`",MathJax.Hub.Queue(["Typeset",MathJax.Hub,e[t]]));var a=document.getElementsByClassName("qengine_latex");for(var t in a)a[t].hasOwnProperty(t)||(a[t].innerHTML="$$"+a[t].textContent+"$$",MathJax.Hub.Queue(["Typeset",MathJax.Hub,a[t]]));var n=document.getElementsByClassName("qengine_mml");for(var t in n)n[t].hasOwnProperty(t)||MathJax.Hub.Queue(["Typeset",MathJax.Hub,n[t]])</script>"""
+	
+	# not minified version:
+	'''
+var asciimath_divs = document.getElementsByClassName('qengine_asciimath');
+for(var key in asciimath_divs) {
+	if(asciimath_divs[key].hasOwnProperty(key)) continue;
+	asciimath_divs[key].innerHTML = '`' + asciimath_divs[key].textContent + '`';
+	MathJax.Hub.Queue(['Typeset',MathJax.Hub,asciimath_divs[key]]);
+}
+var latex_divs = document.getElementsByClassName('qengine_latex');
+for(var key in latex_divs) {
+	if(latex_divs[key].hasOwnProperty(key)) continue;
+	latex_divs[key].innerHTML = '$$' + latex_divs[key].textContent + '$$';
+	MathJax.Hub.Queue(['Typeset',MathJax.Hub,latex_divs[key]]);
+}
+var mml_divs = document.getElementsByClassName('qengine_mml');
+for(var key in mml_divs) {
+	if(mml_divs[key].hasOwnProperty(key)) continue;
+	MathJax.Hub.Queue(['Typeset',MathJax.Hub,mml_divs[key]]);
+}</script>
+	'''
+	
+	xhtml = mjaxjs + qhtml + vhtml + stephtml + mjaxrender;
+	
+	opData = {'CSS':qcss,'XHTML':xhtml,'progressInfo':step,'questionEnd':questionEnd,'results':results,'resources':genfiles}
 	
 	return jsonify(opData)
 

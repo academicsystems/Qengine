@@ -76,9 +76,10 @@ _graphfile = save(GP,'.png',{})
 	<p>Determine the shortest path between node @@mysage.start@@ &amp; @@mysage.end@@ in the graph below.</p><br>
 	<img src="%%RESOURCES%%@@mysage._graphfile@@">
 	<br><br>
-	<p style="background-color:azure">The answer to this question is: @@mysage.answer@@</p><br>
 	<p>Enter Your Answer: ~~~myq.answer:TEXT:Enter the nodes separated by commas~~~<br></p>
-    	<p>~~~myq.submit:SUBMIT:Submit~~~</p>
+    <p>~~~myq.submit:SUBMIT:Submit~~~</p>
+    <br><br>
+    <p style="background-color:azure">The answer to this question is: @@mysage.answer@@</p>
 </div>
 
 %}
@@ -88,7 +89,7 @@ _graphfile = save(GP,'.png',{})
 	temp.mysage.answer
 %}
 
-@@@@
+@@@@myq.submit
 
 {%python2:mypython
 

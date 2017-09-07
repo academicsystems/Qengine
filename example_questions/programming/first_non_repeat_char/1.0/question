@@ -1,0 +1,137 @@
+{%qhtml:myhtml
+
+<div>
+	<h4>First Non Repeating Char</h4>
+	<p>Code a Python function called 'fnrc' that finds the first non repeating character in a string. It should look like this:</p>
+	<pre><code>
+def fnrc(string):
+    # code that finds first non repeating character
+    return answer
+	</code></pre>
+	<p>Enter Your Answer:</p>
+	<p>~~~myq.code:TEXTAREA:Enter your Python code here.~~~</p>
+	<p>~~~myq.submit:SUBMIT:Submit~~~</p>
+    <br><br>
+    <pre style="background-color:azure">
+    	<code>
+<b>Use This Code As An Answer</b>
+			
+def fnrc(qstring):
+    count = {}
+    characters = []
+    for letter in qstring:
+        if letter in count:
+            count[letter] = count[letter] + 1
+        else:
+            count[letter] = 1
+        
+        if count[letter] == 1:
+            characters.append(letter)
+        elif count[letter] == 2:
+            characters.remove(letter)
+    
+    if len(characters) != 0:
+        answer = characters[0]
+    else:
+        answer = ''
+    
+    return answer
+		</code>
+	</pre>
+</div>
+
+%}
+
+{%qstore:mystore
+	temp.qengine.randomseed
+%}
+
+@@@@myq.submit
+
+{%python2:pquest
+
+import random
+
+seed = @@qengine.randomseed@@
+random.seed(seed)
+
+available_letters = 'abcdefhijklmnopqrstuvwxyz'
+
+qstring = ''
+for x in range(0,80):
+	qstring += random.choice(available_letters)
+
+count = {}
+for letter in available_letters:
+	count[letter] = 0
+
+characters = []
+for letter in qstring:
+	count[letter] = count[letter] + 1
+	if count[letter] == 1:
+		characters.append(letter)
+	elif count[letter] == 2:
+		characters.remove(letter)
+
+if len(characters) != 0:
+	answer = characters[0]
+else:
+	answer = ''
+
+%}
+
+{%python2:nquest
+
+@@myq.code@@
+
+answer = fnrc("@@pquest.qstring@@")
+
+%}
+
+{%python2:aquest
+
+qresult = ('@@pquest.answer@@' == '@@nquest.answer@@') * 1
+if qresult:
+	qright = 1
+	qwrong = 0
+else:
+	qright = 0
+	qwrong = 1
+
+%}
+
+{%qans:myqans
+	@@aquest.qresult@@
+%}
+
+{%qhtml:correct:aquest.qright
+
+<div class="opaque_test">
+	<h4 style="color:blue">Correct!</h4>
+		<p>
+			The string tested was: '@@pquest.qstring@@'.<br>
+			Your function returned: '@@nquest.answer@@'.<br>
+			The correct answer is: '@@pquest.answer@@'. <br>
+		</p>
+</div>
+
+%}
+
+{%qhtml:incorrect:aquest.qwrong
+
+<div class="opaque_test">
+	<h4 style="color:red">Not Correct!</h4>
+	<p>
+		The string tested was: '@@pquest.qstring@@'.<br>
+		Your function returned: '@@nquest.answer@@'.<br>
+		The correct answer is: '@@pquest.answer@@'. <br>
+	</p>
+	<p>
+		If your code threw any errors, they are displayed below:
+	</p>
+	<code>
+		@@nquest.error@@
+	</code>
+</div>
+
+%}

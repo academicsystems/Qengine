@@ -1,0 +1,173 @@
+{%sage:mysage
+
+import random
+
+seed = @@qengine.randomseed@@
+random.seed(seed)
+
+mlists = []
+for x in range(0,3):
+    tmp_list = []
+    for y in range(0,4):
+        tmp_list.append(random.randint(-10,10))
+    mlists.append(tmp_list)
+
+A = matrix(QQ, mlists)
+
+P, L, U = A.LU()
+
+Lower = []
+for r in L:
+    for c in r:
+        Lower.append(str(c))
+
+Lower = ','.join(Lower)
+
+Upper = []
+for r in U:
+    for c in r:
+        Upper.append(str(c))
+
+Upper = ','.join(Upper)
+
+Permutation = []
+for r in P:
+    for c in r:
+        Permutation.append(str(c))
+
+Permutation = ','.join(Permutation)
+
+# LaTeX versions
+
+Amatrix = latex(A)
+Lmatrix = latex(L)
+Umatrix = latex(U)
+Pmatrix = latex(P)
+
+%}
+
+{%qhtml:myhtml
+
+<div>
+	<h4>LU Factorization</h4>
+	<p>Use LU factorization to find the lower-triangular matrix, upper-triangular matrix, and permutation matrix of the matrix below.</p>
+	
+	<div class="qengine_latex">
+		@@mysage.Amatrix@@
+	</div>
+
+	<br>
+
+	<p>~~~myq.lmatrix:TEXTAREA-4:Enter your L matrix here. Delimit your entries with commas or newlines. Spaces are ignored.~~~</p>
+	<p>~~~myq.umatrix:TEXTAREA-4:Enter your U matrix here. Delimit your entries with commas or newlines. Spaces are ignored.~~~</p>
+	<p>~~~myq.pmatrix:TEXTAREA-4:Enter your P matrix here. Delimit your entries with commas or newlines. Spaces are ignored.~~~</p>
+	
+	<br>
+	
+	<p style="background-color:azure">
+		<b>Answers</b><br>
+		@@mysage.Lower@@<br>
+		@@mysage.Upper@@<br>
+		@@mysage.Permutation@@<br>
+	</p>
+	
+	<p>
+		@@mysage.Lmatrix@@
+	</p>
+	
+	<br>
+	
+	<p>~~~myq.submit:SUBMIT:Submit~~~</p>
+</div>
+
+%}
+
+{%qstore:mystore
+	temp.qengine.randomseed
+	temp.mysage.Amatrix
+	temp.mysage.Lmatrix
+	temp.mysage.Umatrix
+	temp.mysage.Pmatrix
+	temp.mysage.Lower
+	temp.mysage.Upper
+	temp.mysage.Permutation
+%}
+
+@@@@myq.submit
+
+{%python2:mypython
+
+from fractions import Fraction
+import re
+
+def gradematrix(answer,matrix):
+    result = 0
+    for n in range(0,len(matrix)):
+        try:
+            if round(float(Fraction(answer[n])),2) == round(float(Fraction(matrix[n])),2):
+                result += 1
+        except:
+            pass
+    
+    return result
+
+lstripped = """@@myq.lmatrix@@""".strip().replace(" ","")
+ustripped = """@@myq.umatrix@@""".strip().replace(" ","")
+pstripped = """@@myq.pmatrix@@""".strip().replace(" ","")
+
+lmatrix = re.sub("\n+",",",lstripped).split(",")
+umatrix = re.sub("\n+",",",ustripped).split(",")
+pmatrix = re.sub("\n+",",",pstripped).split(",")
+
+lanswer = '@@mysage.Lower@@'.split(",")
+uanswer = '@@mysage.Upper@@'.split(",")
+panswer = '@@mysage.Permutation@@'.split(",")
+
+lresult = gradematrix(lanswer,lmatrix)
+uresult = gradematrix(uanswer,umatrix)
+presult = gradematrix(panswer,pmatrix)
+
+qnum = (float(lresult) / float(len(lanswer)) * 0.4) + (float(uresult) / float(len(uanswer)) * 0.4) + (float(presult) / float(len(panswer)) * 0.2)
+qresult = str(round(qnum,2))
+
+%}
+
+{%qans:myqans
+	@@mypython.qresult@@
+%}
+
+{%qhtml:results
+
+<div class="opaque_test">
+	<h4>Result</h4>
+		<p>
+			You scored: @@mypython.qresult@@ / 1<br>
+			L &amp; U are worth 40% each. P is worth 20%.
+		</p>
+		<hr>
+		<p>
+			You entered:<br>
+			@@myq.lmatrix@@<br>
+			@@myq.umatrix@@<br>
+			@@myq.pmatrix@@<br>
+		</p>
+		<hr>
+		<p>
+			The correct answers are:<br>
+			<div class="qengine_latex">
+				@@mysage.Lmatrix@@
+			</div>
+			<div class="qengine_latex">
+				@@mysage.Umatrix@@
+			</div>
+			<div class="qengine_latex">
+				@@mysage.Pmatrix@@
+			</div>
+		</p>
+		<p>
+			@@mypython.lstripped@@<br>
+			@@mypython.lmatrix@@
+		</p>
+</div>
+
+%}

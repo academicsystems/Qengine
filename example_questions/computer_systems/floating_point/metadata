@@ -1,0 +1,4 @@
+category: computer systems
+question: floating point
+details: asks a student to determine the parts of an IEEE floating point value
+purpose: a simple question to demonstrate Qengine

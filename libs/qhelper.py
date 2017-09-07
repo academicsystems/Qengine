@@ -26,7 +26,13 @@ def assemble_question_input(shortcode):
 	
 	input[1] = '%%IDPREFIX%%' + parts[0]
 	
-	itype = parts[1].lower()
+	# grab extra config info if available, i.e. TEXTAREA-10
+	tparts = parts[1].split('-')
+	tconfig = ''
+	if len(tparts) == 2:
+		tconfig = tparts[1]
+	
+	itype = tparts[0].lower()
 	if itype == 'checkbox':
 		olabel = '<label style="display:block" for="%%IDPREFIX%%' + parts[0] + '">'
 		input[3] = 'checkbox'
@@ -62,6 +68,11 @@ def assemble_question_input(shortcode):
 		input[3] = 'reset'
 		input[5] = 'value="' + parts[2] + '"'
 		finput = ''.join(input)
+	elif itype == 'textarea':
+		rows = '20'
+		if tconfig != '':
+			rows = str(tconfig)
+		finput = '<textarea name="' + input[1] + '" placeholder="' + parts[2] + '" style="width:100%" rows="' + rows + '"></textarea>'
 	else:
 		# report error ?
 		finput = ''
@@ -193,6 +204,25 @@ def get_reqvars(filestr,reqvars):
 	
 	return reqvars
 
+def hlog(message):
+	with open('./qlog.txt','a+') as file:
+		file.write("%s\n\n" % message)
+
+def get_qstore_vars(varblock,reqvars):
+	lines = varblock.splitlines(True)
+	for line in lines:
+		variable = line.strip()
+		parts = variable.split('.')
+		try:
+			if parts[1] not in reqvars:
+				reqvars[parts[1]] = []
+			if parts[2] not in reqvars[parts[1]]:
+				reqvars[parts[1]].append(parts[2])
+		except:
+			pass # bad variable name
+	
+	return reqvars
+
 def store_vars_in_html(varblock,qenginevars,salt,iv):
 	vhtml = ''
 	lines = varblock.splitlines(True)
@@ -231,11 +261,11 @@ def substitute_vars(sblock,vars):
 			for match in matches:
 				keys = match.split('.')
 				try:
-					replacestub = vars[keys[0]][keys[1]][0] # this grabs text, but what if LaTeX is wanted, stored at index 1 !!!!!!!!!!!!!!!!!!
+					replacestub = str(vars[keys[0]][keys[1]][0]).replace('\\','\\\\'); ### code @@ns.var[1]@@ , grabs alternate version
 				except Exception as e:
 					replacestub = ''
 				replaceme = r"" + re.escape('@@' + match + '@@')
-				line = re.sub(replaceme,str(replacestub),line)
+				line = re.sub(replaceme,replacestub,line)
 		fblock += line
 	
 	return fblock

@@ -1,0 +1,4 @@
+category: linear algebra
+question: lu decomposition
+details: solve the matrix with lu decomposition
+purpose: a simple question to demonstrate Qengine

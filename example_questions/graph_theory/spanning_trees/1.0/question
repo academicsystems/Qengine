@@ -142,7 +142,7 @@ answer = len(g.spanning_trees())
 	perm.mysage.answer
 %}
 
-@@@@
+@@@@mynm.submit
 
 {%python2:mypython
 
