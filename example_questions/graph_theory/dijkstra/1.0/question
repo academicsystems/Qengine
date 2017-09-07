@@ -1,0 +1,134 @@
+{%sage:mysage
+
+import networkx as nx
+from sage.graphs.graph_plot import GraphPlot
+
+seed = @@qengine.randomseed@@
+
+search = True
+while search:
+    # set the random seed, this is idempotent
+    set_random_seed(seed)
+    
+    # create a random unweighted undirected graph, 8 nodes, 16 edges, letters for nodes
+    g = graphs.RandomGNM(12,18)
+    nodestr = "ABCDEFGHIJKL"
+    
+    # add random edge weights between 1 & 7
+    edges = []
+    for u,v,l in g.edges():
+        edges.append((nodestr[u],nodestr[v],randint(2,5)))
+    
+    # create SageMath graph object and get networkx graph version
+    G = Graph(edges,vertex_labels=True,multiedges=False,weighted=True)
+    NxG = G.networkx_graph()
+    
+    # choose start & end nodes, make sure they're at least 4 edges apart
+    start = None
+    end = None
+    for a,b in NxG.edges():
+        for c,d in NxG.edges():
+            if G.distance(a,c) > 4:
+                start = a
+                end = c
+                break
+    
+    if start is None:
+        seed = seed + 1
+    else:
+        search = False
+
+# calculate djikstra's algorithm
+result = nx.dijkstra_path(NxG,start,end)
+answer = ','.join(result)
+
+# use these options to get graph image with weights
+options = {
+     'vertex_size':200, 
+     'vertex_labels':True, 
+     'layout':'spring',
+     'edge_style':'dashed', 
+     'edge_color':'grey', 
+     'edge_colors':None, 
+     'edge_labels':True,
+     'edge_labels_background':'transparent', 
+     'iterations':200, 
+     'tree_orientation':'down', 
+     'heights':None, 
+     'graph_border':False, 
+     'talk':False, 
+     'color_by_label':True, 
+     'partition':None,
+     'dist':.075, 
+     'max_dist':1.5, 
+     'loop_size':.075}
+
+# create the graph image
+GP = GraphPlot(G,options).plot()
+_graphfile = save(GP,'.png',{})
+
+%}
+
+{%qhtml:myhtml
+
+<div>
+	<h4>Djikstra's Algorithm</h4>
+	<p>Determine the shortest path between node @@mysage.start@@ &amp; @@mysage.end@@ in the graph below.</p><br>
+	<img src="%%RESOURCES%%@@mysage._graphfile@@">
+	<br><br>
+	<p>Enter Your Answer: ~~~myq.answer:TEXT:Enter the nodes separated by commas~~~<br></p>
+    <p>~~~myq.submit:SUBMIT:Submit~~~</p>
+    <br><br>
+    <p style="background-color:azure">The answer to this question is: @@mysage.answer@@</p>
+</div>
+
+%}
+
+{%qstore:mystore
+	temp.qengine.randomseed
+	temp.mysage.answer
+%}
+
+@@@@myq.submit
+
+{%python2:mypython
+
+qresult = ('@@mysage.answer@@' == '@@myq.answer@@') * 1
+if qresult:
+    qright = 1
+    qwrong = 0
+else:
+    qright = 0
+    qwrong = 1
+
+%}
+
+{%qans:myqans
+	@@mypython.qresult@@
+%}
+
+{%qhtml:correct:mypython.qright
+
+<div class="opaque_test">
+	<h4 style="color:blue">Correct!</h4>
+        <p>
+            You entered '@@myq.answer@@'.
+            The correct answer is '@@mysage.answer@@'.
+            That scores a @@mypython.qresult@@. 
+        </p>
+</div>
+
+%}
+
+{%qhtml:incorrect:mypython.qwrong
+
+<div class="opaque_test">
+        <h4 style="color:red">Not Correct!</h4>
+        <p>
+            You entered '@@myq.answer@@'.
+            The correct answer is '@@mysage.answer@@'.
+            That scores a @@mypython.qresult@@.
+        </p>
+</div>
+
+%}

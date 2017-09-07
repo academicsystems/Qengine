@@ -1,0 +1,337 @@
+{%python2:qpython
+
+import random
+
+### get arguments
+
+seed = @@qengine.randomseed@@
+random.seed(seed)
+
+sign = bin(random.randint(0,1))[2:]
+exp = bin(random.randint(0,16))[2:]
+frac = bin(random.randint(0,16))[2:]
+
+signlength = len(sign)
+explength = len(exp)
+fraclength = len(frac)
+
+### define helper functions
+
+def bitsToDec(word):
+    value = 0;
+    l = len(word)
+    word = word[::-1] # reverse the string
+    for ch in range(l):
+        letter = word[ch]
+        if letter == '1':
+            value = value + (2 ** ch)
+    return value
+
+def bitsToHex(dec):
+    vec = "0123456789abcdef"
+    result = "0x"
+    while dec != 0:
+        digit = dec & 0xf;
+        result.append(vec[digit])
+        dec = dec >> 4;
+    return result
+
+
+def bias(word):
+    l = len(word)
+    bias = (2 ** (l-1))-1
+    return bias
+
+def bitsToExp(exp):
+    if exp == ( '0' * len(exp) ):
+        return bitsToDec(exp) - bias(exp) + 1
+    else:
+        return bitsToDec(exp) - bias(exp)
+
+def expIsDenorm(exp):
+    if exp == ( '0' * len(exp) ):
+        return True
+    else:
+        return False
+
+def expIsNAN(exp, frac):
+    if exp == ( '1' * len(exp) ):
+        if frac == ('0' * len(frac)):
+            return False
+        else:
+            return True
+    else:
+        return False
+
+def expIsInf(exp, frac):
+    if exp == ( '1' * len(exp) ):
+        if frac == ('0' * len(frac)):
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
+def expValue(exp):
+    return 2 ** bitsToExp(exp)
+
+def fracValue(frac):
+    v = float( bitsToDec(frac) )
+    v = v / (2 ** len(frac))
+    return v
+
+def mantissa(exp, frac):
+    v = float( bitsToDec(frac) )
+    v = v / (2 ** len(frac))
+    if exp == ( '0' * len(exp) ):
+        # denorm
+        return v
+    else:
+        return v + 1
+
+# convert sign bit to positive or negative one
+def toSign(s):
+    if s == '0':
+        return 1
+    elif s == '1':
+        return -1
+    else:
+        return 0
+
+### main program
+
+Bias = ''
+expdec = ''
+E = ''
+pE = ''
+f = ''
+M = ''
+s = ''
+
+if expIsNAN(exp,frac):
+    V = "NaN"
+elif expIsInf(exp,frac):
+    V = "Infinite"
+else:
+	Bias = bias(exp)
+	expdec = bitsToDec(exp)
+	E = bitsToExp(exp)
+	pE = expValue(exp)
+	f = fracValue(frac)
+	M = mantissa(exp, frac)
+	s = toSign(sign)
+	V = (toSign(sign) * mantissa(exp,frac) * expValue(exp))
+
+%}
+
+{%qhtml:myhtml
+
+<div>
+	<h4>IEEE Floating Point</h4>
+	
+	<p>Determine the following values based on the floating point binary number below:</p>
+	<table style="text-align:center" width="100%" border="1">
+		<tr>
+			<th width="10%">sign bit</th>
+			<th width="45%">exponent bits</th>
+			<th width="45%">fractional bits</th>
+		</tr>
+		<tr>
+			<td><code>@@qpython.sign@@</code></td>
+			<td><code>@@qpython.exp@@</code></td>
+			<td><code>@@qpython.frac@@</code></td>
+		</tr>
+	</table>
+	
+	<br>
+	
+	<p><b>If value is <span style="color:red">Infinity</span> or <span style="color:red">NaN</span>, enter "Infinity" or "NaN" in the [s * 2<sup>E</sup> * M] input and leave everything else blank.</b></p>
+	
+	<table style="text-align:center" width="100%" border="1">
+		<tr>
+			<th width="15%" style="text-align:center">e</th>
+			<td width="85%" title="@@qpython.expdec@@">~~~myq.expdec:TEXT:exponent in decimal~~~</td>
+		</tr>
+		<tr>
+			<th width="15%" style="text-align:center">E</th>
+			<td width="85%" title="@@qpython.E@@">~~~myq.E:TEXT:biased exponent~~~</td>
+		</tr>
+		<tr>
+			<th width="15%" style="text-align:center">2<sup>E</sup></th>
+			<td width="85%" title="@@qpython.pE@@">~~~myq.pE:TEXT:2 raised to the biased exponent~~~</td>
+		</tr>
+		<tr>
+			<th width="15%" style="text-align:center">f</th>
+			<td width="85%" title="@@qpython.f@@">~~~myq.f:TEXT:fractional in decimal~~~</td>
+		</tr>
+		<tr>
+			<th width="15%" style="text-align:center">M</th>
+			<td width="85%" title="@@qpython.M@@">~~~myq.M:TEXT:mantissa~~~</td>
+		</tr>
+		<tr>
+			<th width="15%" style="text-align:center">s * 2<sup>E</sup> * M</th>
+			<td width="85%" title="@@qpython.V@@">~~~myq.V:TEXT:value of floating point number in decimal~~~</td>
+		</tr>
+	</table>
+	
+	<br>
+	
+	<p>~~~myq.submit:SUBMIT:Submit Answer~~~</p>
+	
+	<br><br>
+	
+	<p style="background-color:azure">
+		<b>Cheet Sheet</b><br>
+		Hover over each input field to see the answer.<br><br>
+		<code>
+			e -> exponent bits in decimal<br>
+			f -> fractional bits in decimal<br><br>
+		
+			V = s * 2<sup>E</sup> * M<br><br>
+			
+			s = 1, if sign bit 0<br>
+			s = -1, if sign bit 1<br><br>
+			
+			M = f + 1<br><br>
+			
+			Bias = 2<sup>k - 1</sup> - 1
+			k = the number of bits in e<br><br>
+			
+			Normalized -> exponent bits != all 0 or all 1<br>
+			E = e - Bias<br><br>
+			
+			Denormalized -> exponent bits != all 0<br>
+			E = 1 - Bias<br><br>
+			
+			Infinity -> exponent bits = all 1 &amp;&amp; fractional bits = all 0<br>
+			NaN -> exponent bits = all 1 &amp;&amp; fractional bits = all 1
+		</code>
+	</p>
+</div>
+
+%}
+
+{%qstore:mystore
+	temp.qengine.randomseed
+	temp.qpython.expdec
+	temp.qpython.E
+	temp.qpython.pE
+	temp.qpython.f
+	temp.qpython.M
+	temp.qpython.V
+%}
+
+@@@@myq.submit
+
+{%python2:apython
+
+grade = 0
+
+V_color = 'lightgreen'
+expdec_color = 'lightgreen'
+E_color = 'lightgreen'
+pE_color = 'lightgreen'
+f_color = 'lightgreen'
+M_color = 'lightgreen'
+
+if '@@qpython.V@@' == 'Infinity':
+	if '@@myq.V@@' == 'Infinity':
+		grade = 1
+	else:
+		V_color = 'red'
+elif '@@qpython.V@@' == 'NaN':
+	if '@@myq.V@@' == 'NaN':
+		grade = 1
+	else:
+		V_color = 'red'
+else:
+	if float(@@qpython.V@@) == float(@@myq.V@@):
+		grade += 0.18
+	else:
+		V_color = 'red'
+	
+	if float(@@qpython.expdec@@) == float(@@myq.expdec@@):
+	    grade += 0.16
+	else:
+		expdec_color = 'red'
+	
+	if float(@@qpython.E@@) == float(@@myq.E@@):
+		grade += 0.16
+	else:
+		E_color = 'red'
+	
+	if float(@@qpython.pE@@) == float(@@myq.pE@@):
+		grade += 0.16
+	else:
+		pE_color = 'red'
+	
+	if float(@@qpython.f@@) == float(@@myq.f@@):
+		grade += 0.17
+	else:
+		f_color = 'red'
+	
+	if float(@@qpython.M@@) == float(@@myq.M@@):
+		grade += 0.17
+	else:
+		M_color = 'red'
+
+gradescaled = grade * 100
+
+%}
+
+{%qans:myqans
+	@@apython.grade@@
+%}
+
+{%qhtml:response
+
+<div class="opaque_test">
+	<h4>Results:</h4>
+	
+	<p>You Scored: <b>@@apython.gradescaled@@</b> / 100</p>
+	
+	<h4>You Entered:</h4>
+	<table style="text-align:center" width="100%" border="1">
+		<tr>
+			<th width="16%" style="text-align:center">e</th>
+			<th width="16%" style="text-align:center">E</th>
+			<th width="16%" style="text-align:center">2<sup>E</sup></th>
+			<th width="16%" style="text-align:center">f</th>
+			<th width="16%" style="text-align:center">M</th>
+			<th width="20%" style="text-align:center">s * 2<sup>E</sup> * M</th>
+		</tr>
+		<tr>
+			<td style="color:black;background-color:@@apython.expdec_color@@">@@myq.expdec@@</td>
+			<td style="color:black;background-color:@@apython.E_color@@">@@myq.E@@</td>
+			<td style="color:black;background-color:@@apython.pE_color@@">@@myq.pE@@</td>
+			<td style="color:black;background-color:@@apython.f_color@@">@@myq.f@@</td>
+			<td style="color:black;background-color:@@apython.M_color@@">@@myq.M@@</td>
+			<td style="color:black;background-color:@@apython.V_color@@">@@myq.V@@</td>
+		</tr>
+	</table>
+	
+	<br>
+	
+	<h4>The Correct Answers Are:</h4>
+	<table style="text-align:center" width="100%" border="1">
+		<tr>
+			<th width="16%" style="text-align:center">e</th>
+			<th width="16%" style="text-align:center">E</th>
+			<th width="16%" style="text-align:center">2<sup>E</sup></th>
+			<th width="16%" style="text-align:center">f</th>
+			<th width="16%" style="text-align:center">M</th>
+			<th width="20%" style="text-align:center">s * 2<sup>E</sup> * M</th>
+		</tr>
+		<tr>
+			<td>@@qpython.expdec@@</td>
+			<td>@@qpython.E@@</td>
+			<td>@@qpython.pE@@</td>
+			<td>@@qpython.f@@</td>
+			<td>@@qpython.M@@</td>
+			<td>@@qpython.V@@</td>
+		</tr>
+	</table>
+</div>
+
+%}

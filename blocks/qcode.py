@@ -24,22 +24,23 @@ def process_python2_code(key,pycode,reqvars,qenginevars,cachedresources,genfiles
 	
 	# retrieve any files that vars point to
 	for ns, vars in qenginevars.iteritems():
-		for key, vals in vars.iteritems():
-			if key[0] == '_':
-				filename = vals[0]
-				if filename.split('.')[0] == 'error' or filename in cachedresources:
-					continue
-				
-				mt = mimetypes.guess_type(filename)[0]
-				response = requests.get(PYTHON2_URL + '/static/' + filename) # request for file's binary content
-				if response.status_code == 404:
-					pass # report error somehow?
-				elif len(response.content) == 0:
-					pass # probably means .sobj was saved & author needs to save different object
-				else:
-					genfiles.append({
-						"content" : base64.b64encode(response.content),
-						"encoding" : "base64",
-						"filename" : filename,
-						"mimeType" : mt,
-					})
+		if ns != 'error':
+			for key, vals in vars.iteritems():
+				if key[0] == '_':
+					filename = vals[0]
+					if filename.split('.')[0] == 'error' or filename in cachedresources:
+						continue
+					
+					mt = mimetypes.guess_type(filename)[0]
+					response = requests.get(PYTHON2_URL + '/static/' + filename) # request for file's binary content
+					if response.status_code == 404:
+						pass # report error somehow?
+					elif len(response.content) == 0:
+						pass # probably means .sobj was saved & author needs to save different object
+					else:
+						genfiles.append({
+							"content" : base64.b64encode(response.content),
+							"encoding" : "base64",
+							"filename" : filename,
+							"mimeType" : mt,
+						})

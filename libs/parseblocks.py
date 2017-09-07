@@ -4,7 +4,7 @@ class Blocks:
 	
 	def __init__(self):
 		self.error = None
-		self.blocks = {} # block format: { blockname : [blocktype,blockcontent] }
+		self.blocks = {} # block format: { blockname : [blocktype,blockcontent,bconditional] }
 		self.cblock = '' # current block name
 		self.order = [] # keep the blockname indexes of self.blocks in order processed here
 	
@@ -13,24 +13,45 @@ class Blocks:
 		m = re.split('{%',line,1)
 		if len(m) > 1:
 			# found open tag, grab btype & bname, send the rest to parseClose
-			tm = re.split(':',m[1],1)
-			if len(tm) > 1:
+			tm = re.split(':',m[1],2)
+			
+			btype = ''
+			bname = ''
+			bcond = None
+			therest = ''
+			# btype:bname:bcond extra
+			if len(tm) > 2:
 				btype = tm[0]
+				bname = tm[1]
+				
+				nm = re.split('\s',tm[2],1)
+				if len(nm) > 1:
+					bcond = nm[0]
+					therest = nm[1]
+				else:
+					bcond = nm[0]
+			# btype:bname extra
+			elif len(tm) > 1:
+				btype = tm[0]
+				
 				nm = re.split('\s',tm[1],1)
 				if len(nm) > 1:
 					bname = nm[0]
-					self.cblock = nm[0]
-					self.__createBlock(bname,btype)
-					if len(nm[1]) > 0:
-						return not self.__parseClose(nm[1])
-					else:
-						return True
+					therest = nm[1]
 				else:
-					self.error = {'incomplete open tag on line ' + str(self.lncnt):'the entire open tag must be on one line like, {%btype:bname'}
-					return False
+					bname = nm[0]
+			# error
 			else:
-				self.error = {'incomplete open tag on line ' + str(self.lncnt):'the entire open tag must be on one line like, {%btype:bname'}
+				self.error = {'incorrect open tag on line ' + str(self.lncnt) + ': the entire open tag must be on one line like, {%btype:bname or {%btype:bname:bcond'}
 				return False
+			
+			# 
+			self.cblock = bname
+			self.__createBlock(bname,btype,bcond)
+			if len(therest) > 0:
+				return not self.__parseClose(therest)
+			else:
+				return True
 		else:
 			# ignore everything between %} {%
 			return False
@@ -47,8 +68,8 @@ class Blocks:
 			self.__addToBlock(line)
 			return False
 		
-	def __createBlock(self,bname,btype):
-		self.blocks[bname] = [btype,'']
+	def __createBlock(self,bname,btype,bcond=None):
+		self.blocks[bname] = [btype,'',bcond]
 		self.order.append(bname)
 	
 	def __addToBlock(self,line):
