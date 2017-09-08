@@ -71,10 +71,6 @@ Pmatrix = latex(P)
 		@@mysage.Permutation@@<br>
 	</p>
 	
-	<p>
-		@@mysage.Lmatrix@@
-	</p>
-	
 	<br>
 	
 	<p>~~~myq.submit:SUBMIT:Submit~~~</p>
@@ -141,15 +137,15 @@ qresult = str(round(qnum,2))
 <div class="opaque_test">
 	<h4>Result</h4>
 		<p>
-			You scored: @@mypython.qresult@@ / 1<br>
-			L &amp; U are worth 40% each. P is worth 20%.
+			You scored: @@mypython.qresult@@ / 1.0<br>
+			L &amp; U are worth 40% each. P is worth 20%.<br>
 		</p>
 		<hr>
 		<p>
 			You entered:<br>
-			@@myq.lmatrix@@<br>
-			@@myq.umatrix@@<br>
-			@@myq.pmatrix@@<br>
+			@@mypython.lmatrix@@<br>
+			@@mypython.umatrix@@<br>
+			@@mypython.pmatrix@@<br>
 		</p>
 		<hr>
 		<p>
@@ -163,10 +159,6 @@ qresult = str(round(qnum,2))
 			<div class="qengine_latex">
 				@@mysage.Pmatrix@@
 			</div>
-		</p>
-		<p>
-			@@mypython.lstripped@@<br>
-			@@mypython.lmatrix@@
 		</p>
 </div>
 
