@@ -228,53 +228,53 @@ else:
 
 grade = 0
 
-V_color = 'lightgreen'
-expdec_color = 'lightgreen'
-E_color = 'lightgreen'
-pE_color = 'lightgreen'
-f_color = 'lightgreen'
-M_color = 'lightgreen'
+Vcolor = 'lightgreen'
+expdecColor = 'lightgreen'
+Ecolor = 'lightgreen'
+pEcolor = 'lightgreen'
+fColor = 'lightgreen'
+Mcolor = 'lightgreen'
 
 if '@@qpython.V@@' == 'Infinity':
 	if '@@myq.V@@' == 'Infinity':
 		grade = 1
 	else:
-		V_color = 'red'
+		Vcolor = 'red'
 elif '@@qpython.V@@' == 'NaN':
 	if '@@myq.V@@' == 'NaN':
 		grade = 1
 	else:
-		V_color = 'red'
+		Vcolor = 'red'
 else:
 	if float(@@qpython.V@@) == float(@@myq.V@@):
 		grade += 0.18
 	else:
-		V_color = 'red'
+		Vcolor = 'red'
 	
 	if float(@@qpython.expdec@@) == float(@@myq.expdec@@):
 	    grade += 0.16
 	else:
-		expdec_color = 'red'
+		expdecColor = 'red'
 	
 	if float(@@qpython.E@@) == float(@@myq.E@@):
 		grade += 0.16
 	else:
-		E_color = 'red'
+		Ecolor = 'red'
 	
 	if float(@@qpython.pE@@) == float(@@myq.pE@@):
 		grade += 0.16
 	else:
-		pE_color = 'red'
+		pEcolor = 'red'
 	
 	if float(@@qpython.f@@) == float(@@myq.f@@):
 		grade += 0.17
 	else:
-		f_color = 'red'
+		fColor = 'red'
 	
 	if float(@@qpython.M@@) == float(@@myq.M@@):
 		grade += 0.17
 	else:
-		M_color = 'red'
+		Mcolor = 'red'
 
 gradescaled = grade * 100
 
@@ -302,12 +302,12 @@ gradescaled = grade * 100
 			<th width="20%" style="text-align:center">s * 2<sup>E</sup> * M</th>
 		</tr>
 		<tr>
-			<td style="color:black;background-color:@@apython.expdec_color@@">@@myq.expdec@@</td>
-			<td style="color:black;background-color:@@apython.E_color@@">@@myq.E@@</td>
-			<td style="color:black;background-color:@@apython.pE_color@@">@@myq.pE@@</td>
-			<td style="color:black;background-color:@@apython.f_color@@">@@myq.f@@</td>
-			<td style="color:black;background-color:@@apython.M_color@@">@@myq.M@@</td>
-			<td style="color:black;background-color:@@apython.V_color@@">@@myq.V@@</td>
+			<td style="color:black;background-color:@@apython.expdecColor@@">@@myq.expdec@@</td>
+			<td style="color:black;background-color:@@apython.Ecolor@@">@@myq.E@@</td>
+			<td style="color:black;background-color:@@apython.pEcolor@@">@@myq.pE@@</td>
+			<td style="color:black;background-color:@@apython.fColor@@">@@myq.f@@</td>
+			<td style="color:black;background-color:@@apython.Mcolor@@">@@myq.M@@</td>
+			<td style="color:black;background-color:@@apython.Vcolor@@">@@myq.V@@</td>
 		</tr>
 	</table>
 	

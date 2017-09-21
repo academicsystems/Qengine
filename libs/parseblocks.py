@@ -3,7 +3,7 @@ import re
 class Blocks:
 	
 	def __init__(self):
-		self.error = None
+		self.errors = []
 		self.blocks = {} # block format: { blockname : [blocktype,blockcontent,bconditional] }
 		self.cblock = '' # current block name
 		self.order = [] # keep the blockname indexes of self.blocks in order processed here
@@ -42,7 +42,7 @@ class Blocks:
 					bname = nm[0]
 			# error
 			else:
-				self.error = {'incorrect open tag on line ' + str(self.lncnt) + ': the entire open tag must be on one line like, {%btype:bname or {%btype:bname:bcond'}
+				self.errors.append('incorrect open tag on line ' + str(self.lncnt) + ': the entire open tag must be on one line like, {%btype:bname or {%btype:bname:bcond')
 				return False
 			
 			# 

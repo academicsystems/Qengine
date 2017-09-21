@@ -10,7 +10,7 @@ while search:
     # set the random seed, this is idempotent
     set_random_seed(seed)
     
-    # create a random unweighted undirected graph, 8 nodes, 16 edges, letters for nodes
+    # create a random unweighted undirected graph, 12 nodes, 18 edges, letters for nodes
     g = graphs.RandomGNM(12,18)
     nodestr = "ABCDEFGHIJKL"
     
@@ -35,12 +35,16 @@ while search:
     
     if start is None:
         seed = seed + 1
-    else:
+        continue
+    
+    try:
+        # calculate djikstra's algorithm
+        result = nx.dijkstra_path(NxG,start,end)
+        answer = ','.join(result)
         search = False
-
-# calculate djikstra's algorithm
-result = nx.dijkstra_path(NxG,start,end)
-answer = ','.join(result)
+    except:
+        seed = seed + 1
+        search = True
 
 # use these options to get graph image with weights
 options = {
@@ -51,7 +55,6 @@ options = {
      'edge_color':'grey', 
      'edge_colors':None, 
      'edge_labels':True,
-     'edge_labels_background':'transparent', 
      'iterations':200, 
      'tree_orientation':'down', 
      'heights':None, 

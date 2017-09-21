@@ -38,4 +38,6 @@ def loadblocks(configuration):
 		BLOCKS['sage'] = qsage.process_sage_code
 		print 'SAGE enabled'
 	
+	#! TODO: check for generic code blocks, like CODE_URL_name. import qcode as object when found 
+	
 	return BLOCKS
