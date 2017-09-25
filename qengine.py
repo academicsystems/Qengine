@@ -127,7 +127,7 @@ class SaveToCache(threading.Thread):
 @app.before_request
 def log_request():
 	if QENGINE_LOG_REQUESTS:
-		with open('./qlog.txt','a+') as file:
+		with open('./logs/request.log','a+') as file:
 			file.write("%s %s\n%s%s\n\n" % (request.method, request.url, request.headers, request.get_json(silent=True)))
 	return None
 
