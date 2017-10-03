@@ -11,12 +11,10 @@ import requests
 
 class Qhelper():
 	
-	config = {}
-	errors = []
-
 	# config - dict of qengine config keys and values
 	def __init__(self,config={}):
 		self.config = config
+		self.errors = []
 	
 	### PRIVATE FUNCTIONS
 	
