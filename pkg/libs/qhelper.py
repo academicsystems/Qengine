@@ -1,6 +1,7 @@
 import base64
 from Crypto.Cipher import AES # pycrypto
 import glob
+import hashlib
 import json
 import Levenshtein
 import mimetypes
@@ -154,6 +155,22 @@ class Qhelper():
 			return False
 		
 		return False
+	
+	def checkPassKey(enciv):
+		encivArray = enciv.split(':')
+		if len(encivArray) != 2:
+			return False
+		
+		# use md5 hash of passkey & instantiation variable to create encryption object
+		aesObj = AES.new(hashlib.md5(QENGINE_PASSKEY).hexdigest(), AES.MODE_CFB, encivArray[1], segment_size=8)
+		
+		# decrypt message using encryption object
+		pkmessage = aesObj.decrypt(base64.b64decode(encivArray[0]))
+		
+		if pkmessage != 'success':
+			return False
+		
+		return True
 		
 	def get_first_file(self,filename):
 		files = glob.glob(filename + "*")
@@ -297,4 +314,3 @@ class Qhelper():
 			fblock += line
 		
 		return fblock
-

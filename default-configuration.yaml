@@ -13,5 +13,5 @@ QENGINE_PASSKEY:
 ENGINEINFO_name: 
 
 # urls to block containers
-PYTHON2_URL: 
-SAGE_URL: 
+# PYTHON2_URL: 
+# SAGE_URL: 
