@@ -4,6 +4,8 @@ mimetypes.init()
 import json
 import requests
 
+from ..libs import qlog
+
 ### this is a generic function for sending code to any code service.
 #
 # The code service should accept requests at /code with a json payload of {'code':code,'vars':reqvars}
@@ -19,6 +21,12 @@ def process_any_code(key,code,reqvars,qenginevars,cachedresources,genfiles,quest
 	
 	header = {'Content-Type':'application/json','Accept':'application/json'}
 	response = requests.post(CODE_URL + '/code',data = json.dumps(cjson),headers = header)
+	
+	if response.status_code != 200:
+		qlog.loge('code block returning status code: ' + response.status_code)
+		question_errors.append('code block is returning an invalid status code, contact your qengine administrator')
+		return
+	
 	try:
 		qenginevars[key] = vars = response.json()
 	except:

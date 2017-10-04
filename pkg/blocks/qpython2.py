@@ -4,6 +4,8 @@ mimetypes.init()
 import json
 import requests
 
+from ..libs import qlog
+
 # key - block namespace
 # sagecode - block contents
 #
@@ -21,6 +23,12 @@ def process_python2_code(key,pycode,reqvars,qenginevars,cachedresources,genfiles
 	
 	header = {'Content-Type':'application/json','Accept':'application/json'}
 	response = requests.post(PYTHON2_URL + '/python',data = json.dumps(pyjson),headers = header)
+	
+	if response.status_code != 200:
+		qlog.loge('python2 block returning status code: ' + response.status_code)
+		question_errors.append('python2 block is returning an invalid status code, contact your qengine administrator')
+		return
+	
 	try:
 		qenginevars[key] = vars = response.json()
 	except:
