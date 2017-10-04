@@ -146,7 +146,7 @@ answer = len(g.spanning_trees())
 
 {%python2:mypython
 
-custom_result = ((@@mysage.answer@@ == @@myq.answer@@) * 0.5) + ((0 == @@myq.guess@@) * 0.5)
+customResult = ((@@mysage.answer@@ == @@myq.answer@@) * 0.5) + ((0 == @@myq.guess@@) * 0.5)
 qresult = qengine.grade({'myq':{'accept':2,'grading':"linear",'match':2,'percentage':100,'margin':3,'values':[@@mysage.answer@@,0]}},{'myq':[@@myq.answer@@,@@myq.guess@@]})
 
 %}
@@ -182,10 +182,10 @@ qresult = qengine.grade({'myq':{'accept':2,'grading':"linear",'match':2,'percent
         	You can also grade the question using your own custom code, like the python code below:
         </p>
         <code style="display:inherit;background-color:cyan">
-        	<pre>custom_result = ((@@mysage.answer@@ == @@myq.answer@@) * 0.5) + ((0 == @@myq.guess@@) * 0.5)</pre>
+        	<pre>customResult = ((@@mysage.answer@@ == @@myq.answer@@) * 0.5) + ((0 == @@myq.guess@@) * 0.5)</pre>
         </code>
 		<p>
-			That scored a <b>@@mypython.custom_result@@</b> with custom grading code in a python2.7 block.
+			That scored a <b>@@mypython.customResult@@</b> with custom grading code in a python2.7 block.
         </p>
         <br>
         <p style="font-size:0.8em;">
