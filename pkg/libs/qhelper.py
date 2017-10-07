@@ -9,12 +9,15 @@ import munkres
 import qlog
 import re
 import requests
+import urllib
+
+from ..config.qconfig import Config
 
 class Qhelper():
 	
 	# config - dict of qengine config keys and values
-	def __init__(self,config={}):
-		self.config = config
+	def __init__(self):
+		self.config = Config()
 		self.errors = []
 	
 	### PRIVATE FUNCTIONS
@@ -86,7 +89,7 @@ class Qhelper():
 	
 	def _check_varname(self,varname,qstore=False):
 		# cannot use underscores with Moodle because PHP replaces dots with underscores
-		if self.config['MOODLE_HACK'] == True:
+		if self.config.QENGINE_MOODLE_HACKS == True:
 			matches = re.findall('[^.]_', varname)
 			if len(matches) > 0:
 				return False
@@ -156,21 +159,29 @@ class Qhelper():
 		
 		return False
 	
-	def checkPassKey(enciv):
+	# password logic:
+	#
+	#     the md5 hash of the passkey is used to encrypt 'success' with a random initialization variable
+	#     connecting front-ends should send ?passKey=[md5 hash of key]:[init var]
+	#
+	def checkPassKey(self,enciv):
+		if enciv is None:
+			return 1
+		
 		encivArray = enciv.split(':')
 		if len(encivArray) != 2:
-			return False
+			return 2
 		
 		# use md5 hash of passkey & instantiation variable to create encryption object
-		aesObj = AES.new(hashlib.md5(QENGINE_PASSKEY).hexdigest(), AES.MODE_CFB, encivArray[1], segment_size=8)
+		aesObj = AES.new(hashlib.md5(self.config.QENGINE_PASSKEY).hexdigest(), AES.MODE_CFB, encivArray[1], segment_size=8)
 		
 		# decrypt message using encryption object
-		pkmessage = aesObj.decrypt(base64.b64decode(encivArray[0]))
+		pkmessage = aesObj.decrypt(base64.b64decode(urllib.unquote(encivArray[0])))
 		
 		if pkmessage != 'success':
-			return False
+			return 3
 		
-		return True
+		return 0
 		
 	def get_first_file(self,filename):
 		files = glob.glob(filename + "*")

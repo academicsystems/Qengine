@@ -8,7 +8,7 @@ mimetypes.init()
 import os
 import os.path
 
-from ..config import config
+from ..config.qconfig import Config
 from ..libs import parseblocks,qlog
 from ..libs.qcache import SaveToCache
 from ..libs.qhelper import Qhelper
@@ -16,8 +16,8 @@ from ..libs.qhelper import Qhelper
 qengine_start = Blueprint('qengine_start', __name__)
 @qengine_start.route('/session',methods=['POST'])
 def start():
-	# helper functions
-	qhelper = Qhelper({'MOODLE_HACK':config.QENGINE_MOODLE_HACKS})
+	config = Config()
+	qhelper = Qhelper()
 	
 	# array of errors for question writers
 	question_errors = []
@@ -58,18 +58,17 @@ def start():
 	else:
 		cachedresources = []
 	
-	# check pass key if set
+	# check pass key if set	
 	if config.QENGINE_PASSKEY != None:
-		if "passKey" not in params:
-			noaccess = {'error':'passkey is required'}
-			return jsonify(noaccess)
-		else:
-			m = hashlib.md5()
-			m.update(config.QENGINE_PASSKEY)
-			m.digest()
-			if params["passKey"] != m.hexdigest():
-				noaccess = {'error':'invalid passkey'}
-				return jsonify(noaccess)
+		if 'passKey' not in params:
+			return jsonify({'error':'passkey is required'})
+		presult = qhelper.checkPassKey(params['passKey'])
+		if presult == 1:
+			return jsonify({'error':'passkey is required'})
+		elif presult == 2:
+			return jsonify({'error':'invalid passkey format'})
+		elif presult == 3:
+			return jsonify({'error':'invalid passkey'})
 	
 	# grab optional variables
 	if "language" not in params:

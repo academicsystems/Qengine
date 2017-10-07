@@ -25,6 +25,9 @@ def checkBlockContainer(configuration,name):
 def loadblocks(configuration):
 	BLOCKS = {}
 	
+	# just an empty line to make test output prettier
+	print ''
+	
 	if checkBlockContainer(configuration,'PYTHON2_URL'):
 		import qpython2
 		qpython2.PYTHON2_URL = configuration['PYTHON2_URL']
