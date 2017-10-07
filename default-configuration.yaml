@@ -1,16 +1,62 @@
-# mandatory configuration
-QENGINE_CACHE_DIR: 
+#
+#
+### mandatory configuration
+#
+#
+
+# salt used for encryption
 QENGINE_SALT: must_be_16_24_or_32_chars_long__
 
-# optional configuration
+# 
+QENGINE_QUESTION_LOCATION: 
+
+#
+#
+### possibly optional configuration
+#
+#
+
+# if QENGINE_NO_CACHE is False, this must be set to the location of your cache directory
+QENGINE_CACHE_DIR: 
+
+#
+#
+### optional configuration
+#
+#
+
+# enables route to accept question files from front-end: PUT /question/base/version/id
+QENGINE_ENABLE_REMOTE:
+
+# (recommended) set your own initialization variable for encryption
 QENGINE_IV: must_be_16_long_
+
+# save all requests to logs/requests.log
 QENGINE_LOG_REQUESTS: False
+
+# enable this if using Moodle
 QENGINE_MOOLE_HACKS: False
+
+# enable this to disable caching
 QENGINE_NO_CACHE: True
+
+# add a passkey if required to contact Qengine
 QENGINE_PASSKEY: 
+
+#
+#
+### engine info configuration
+#
+#
 
 # engine info
 ENGINEINFO_name: 
+
+#
+#
+### enable block services configuration
+#
+#
 
 # urls to block containers
 # PYTHON2_URL: 

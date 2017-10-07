@@ -7,15 +7,15 @@ import mimetypes
 mimetypes.init()
 import re
 
-from ..config import config
+from ..config.qconfig import Config
 from ..libs.qhelper import Qhelper
 from ..libs import parseblocks,qlog
 
 qengine_process = Blueprint('qengine_process', __name__)
 @qengine_process.route('/session/<path:sid>',methods=['POST'])
 def process(sid):
-	# helper functions
-	qhelper = Qhelper({'MOODLE_HACK':config.QENGINE_MOODLE_HACKS})
+	config = Config()
+	qhelper = Qhelper()
 	
 	# array of errors for question writers
 	question_errors = []
@@ -65,6 +65,18 @@ def process(sid):
 	except Exception as e:
 		# this indicates a fatal error, as temp.qengine.step should always exist (at least one formVars value)
 		qlog.loge(str(e))
+	
+	# check pass key if set	
+	if config.QENGINE_PASSKEY != None:
+		if 'passKey' not in qenginevars['qengine']:
+			return jsonify({'error':'passkey is required'})
+		presult = qhelper.checkPassKey(qenginevars['qengine']['passKey'][0])
+		if presult == 1:
+			return jsonify({'error':'passkey is required'})
+		elif presult == 2:
+			return jsonify({'error':'invalid passkey format'})
+		elif presult == 3:
+			return jsonify({'error':'invalid passkey'})
 	
 	### DETERMINE AND GET QUESTION STEP ###
 	
