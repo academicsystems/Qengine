@@ -101,7 +101,7 @@ class Blocks:
 		self.__parseQengine(lines)
 	
 	def parseAllSteps(self,data):
-		blocks = string.split('@@@@')
+		blocks = data.split('@@@@')
 		
 		for block in blocks:
 			lines = block.splitlines(True)

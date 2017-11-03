@@ -1,6 +1,7 @@
 import flask
 from flask import Blueprint,jsonify,request
 import os.path
+import shutil
 import time
 import urllib
 import yaml # pyyaml
@@ -42,10 +43,13 @@ def postQuestionFile(base,id,version):
 	if 'questionFile' not in data:
 		error= {'error':'Missing questionFile in JSON'}
 		return jsonify(error)
+	else:
+		# remove carriage returns from data
+		questionFile = data['questionFile'].replace("\r",'')
 	
 	# check for errors in file
 	allblocks = parseblocks.Blocks()
-	allblocks.parseAllSteps(data['questionFile'])
+	allblocks.parseAllSteps(questionFile)
 	
 	if(len(allblocks.errors) > 0):
 		return jsonify({'errors':allblocks.errors})
@@ -59,12 +63,12 @@ def postQuestionFile(base,id,version):
 	# make question dir if not exists or create back up of old question file
 	if not os.path.isdir(qdirname):
 		os.makedirs(qdirname,0750)
-	elif os.path.isdir(filepath):
-		stamp = time.time()
-		os.rename(filepath,stamp + "_backup")
+	elif os.path.isfile(qfilepath):
+		stamp = str(time.time())
+		shutil.move(qfilepath,stamp + "_backup")
 		
-	with open(qfilepath,'w') as file:
-		file.write("%s" % data['questionFile'])
+	with open(qfilepath,'wb') as file:
+		file.write("%s" % questionFile)
 		
 	fileblocks = parseblocks.Blocks()
 	fileblocks.parseFile(qfilepath,0)
@@ -72,7 +76,7 @@ def postQuestionFile(base,id,version):
 	# check for a block to write question metadata
 	for key in fileblocks.order:
 		if fileblocks.blocks[key][0] == 'qmetadata':
-			with open(metafilepath,'w') as file:
+			with open(metafilepath,'wb') as file:
 				file.write("%s" % fileblocks.blocks[key][1])
 	
 	# if metadata does not exist, make blank metadata file
