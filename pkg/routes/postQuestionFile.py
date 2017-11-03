@@ -45,7 +45,7 @@ def postQuestionFile(base,id,version):
 	
 	# check for errors in file
 	allblocks = parseblocks.Blocks()
-	allblocks.parseAllSteps(data['questionfile'])
+	allblocks.parseAllSteps(data['questionFile'])
 	
 	if(len(allblocks.errors) > 0):
 		return jsonify({'errors':allblocks.errors})
@@ -64,7 +64,7 @@ def postQuestionFile(base,id,version):
 		os.rename(filepath,stamp + "_backup")
 		
 	with open(qfilepath,'w') as file:
-		file.write("%s" % data['questionfile'])
+		file.write("%s" % data['questionFile'])
 		
 	fileblocks = parseblocks.Blocks()
 	fileblocks.parseFile(qfilepath,0)
