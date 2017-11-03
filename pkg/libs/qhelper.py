@@ -22,70 +22,95 @@ class Qhelper():
 	
 	### PRIVATE FUNCTIONS
 	
-	def _assemble_question_input(self,shortcode):
+	def _assemble_question_input(self,shortcode,qenginevars):
 		parts = shortcode.split(":")
 		
-		if len(parts) != 3:
+		if len(parts) == 3:
+			# 1 -> name, 3 -> type, 5 -> extra
+			input = ['<input name="','','" type="','','" ','',' style="width:100%;box-sizing:border-box;">']
+			
+			input[1] = '%%IDPREFIX%%' + parts[0]
+			
+			# grab extra config info if available, i.e. TEXTAREA-10
+			tparts = parts[1].split('-')
+			tconfig = ''
+			if len(tparts) == 2:
+				tconfig = tparts[1]
+			
+			itype = tparts[0].lower()
+			if itype == 'checkbox':
+				olabel = '<label style="display:block" for="%%IDPREFIX%%' + parts[0] + '">'
+				input[3] = 'checkbox'
+				input[5] = 'id="%%IDPREFIX%%' + parts[0] + '" value="' + parts[2].split(',')[0] + '"'
+				finput = olabel + ''.join(input) + parts[2].split(',')[1] + '</label>'
+			elif itype == 'text':
+				input[3] = 'text'
+				input[5] = 'placeholder="' + parts[2] + '"'
+				finput = ''.join(input)
+			elif itype == 'number':
+				input[3] = 'number'
+				input[5] = 'placeholder="' + parts[2] + '"'
+				finput = ''.join(input)
+			elif itype == 'select':
+				oselect = '<select style="width:100%" name="%%IDPREFIX%%' + parts[0] + '">'
+				alloptions = ''
+				options = parts[2].split(',')
+				for option in options:
+					alloptions += '<option>' + option + '</option>'
+				finput = oselect + alloptions + '</select>'
+			elif itype == 'multiple':
+				oselect = '<select style="width:100%" name="%%IDPREFIX%%' + parts[0] + '[]" multiple>'
+				alloptions = ''
+				options = parts[2].split(',')
+				for option in options:
+					alloptions += '<option>' + option + '</option>'
+				finput = oselect + alloptions + '</select>'
+			elif itype == 'submit':
+				input[3] = 'submit'
+				input[5] = 'value="' + parts[2] + '"'
+				finput = ''.join(input)
+			elif itype == 'reset':
+				input[3] = 'reset'
+				input[5] = 'value="' + parts[2] + '"'
+				finput = ''.join(input)
+			elif itype == 'textarea':
+				rows = '20'
+				if tconfig != '':
+					rows = str(tconfig)
+				finput = '<textarea name="' + input[1] + '" placeholder="' + parts[2] + '" style="width:100%" rows="' + rows + '"></textarea>'
+			else:
+				self.errors.append('assemble_question_input(): invalid shortcode type ' + shortcode)
+				finput = ''
+			
+			return finput
+		elif len(parts) == 2:		
+			resparts = parts[0].split('.',1)
+			
+			try:
+				src = qenginevars[resparts[0]][resparts[1]]
+			except Exception as e:
+				self.errors.append('assemble_question_input(): could not find resource in media shortcode ' + shortcode)
+				return ''
+	
+			itype = parts[1].lower()
+			if itype == 'audio':
+				mediatag = '<audio src="%%RESOURCE%%' + src + '"></audio>'
+			elif itype == 'embed':
+				mediatag = '<embed src="%%RESOURCE%%' + src + '">'
+			elif itype == 'image':
+				mediatag = '<img src="%%RESOURCE%%' + src + '">'
+			elif itype == 'script':
+				mediatag = '<script src="%%RESOURCE%%' + src + '"></script>'
+			elif itype == 'video':
+				mediatag = '<video src="%%RESOURCE%%' + src + '"></video>'
+			else:
+				self.errors.append('assemble_question_input(): invalid shortcode type ' + shortcode)
+				mediatag = ''
+				
+			return mediatag;
+		else:
 			self.errors.append('assemble_question_input(): invalid shortcode format ' + shortcode)
 			return ''
-		
-		# 1 -> name, 3 -> type, 5 -> extra
-		input = ['<input name="','','" type="','','" ','',' style="width:100%">']
-		
-		input[1] = '%%IDPREFIX%%' + parts[0]
-		
-		# grab extra config info if available, i.e. TEXTAREA-10
-		tparts = parts[1].split('-')
-		tconfig = ''
-		if len(tparts) == 2:
-			tconfig = tparts[1]
-		
-		itype = tparts[0].lower()
-		if itype == 'checkbox':
-			olabel = '<label style="display:block" for="%%IDPREFIX%%' + parts[0] + '">'
-			input[3] = 'checkbox'
-			input[5] = 'id="%%IDPREFIX%%' + parts[0] + '" value="' + parts[2].split(',')[0] + '"'
-			finput = olabel + ''.join(input) + parts[2].split(',')[1] + '</label>'
-		elif itype == 'text':
-			input[3] = 'text'
-			input[5] = 'placeholder="' + parts[2] + '"'
-			finput = ''.join(input)
-		elif itype == 'number':
-			input[3] = 'number'
-			input[5] = 'placeholder="' + parts[2] + '"'
-			finput = ''.join(input)
-		elif itype == 'select':
-			oselect = '<select style="width:100%" name="%%IDPREFIX%%' + parts[0] + '">'
-			alloptions = ''
-			options = parts[2].split(',')
-			for option in options:
-				alloptions += '<option>' + option + '</option>'
-			finput = oselect + alloptions + '</select>'
-		elif itype == 'multiple':
-			oselect = '<select style="width:100%" name="%%IDPREFIX%%' + parts[0] + '[]" multiple>'
-			alloptions = ''
-			options = parts[2].split(',')
-			for option in options:
-				alloptions += '<option>' + option + '</option>'
-			finput = oselect + alloptions + '</select>'
-		elif itype == 'submit':
-			input[3] = 'submit'
-			input[5] = 'value="' + parts[2] + '"'
-			finput = ''.join(input)
-		elif itype == 'reset':
-			input[3] = 'reset'
-			input[5] = 'value="' + parts[2] + '"'
-			finput = ''.join(input)
-		elif itype == 'textarea':
-			rows = '20'
-			if tconfig != '':
-				rows = str(tconfig)
-			finput = '<textarea name="' + input[1] + '" placeholder="' + parts[2] + '" style="width:100%" rows="' + rows + '"></textarea>'
-		else:
-			self.errors.append('assemble_question_input(): invalid shortcode type ' + shortcode)
-			finput = ''
-		
-		return finput
 	
 	def _check_varname(self,varname,qstore=False):
 		# cannot use underscores with Moodle because PHP replaces dots with underscores
@@ -190,7 +215,7 @@ class Qhelper():
 		else:
 			return None
 	
-	def get_local_files(self,filetext,qpath,genfiles):
+	def get_local_files(self,filetext,namespace,qpath,genfiles):
 		lines = filetext.splitlines()
 		for line in lines:
 			path = line.strip()
@@ -221,7 +246,7 @@ class Qhelper():
 				genfiles.append({
 					"content" : base64.b64encode(filecontent),
 					"encoding" : "base64",
-					"filename" : filename,
+					"filename" : namespace + '.' + filename,
 					"mimeType" : mt,
 				})
 	
@@ -293,14 +318,14 @@ class Qhelper():
 		
 		return vhtml
 	
-	def substitute_shortcodes(self,sblock):
+	def substitute_shortcodes(self,sblock,qenginevars):
 		delimiter = '~~~'
 		fblock = ''
 		for line in iter(sblock.splitlines(True)):
 			matches = re.findall(delimiter + '(.*?)' + delimiter, line)
 			if len(matches) > 0:
 				for match in matches:
-					replacestub = self._assemble_question_input(match)
+					replacestub = self._assemble_question_input(match,qenginevars)
 					replaceme = r"" + re.escape(delimiter + match + delimiter)
 					line = re.sub(replaceme,replacestub,line)
 			fblock += line

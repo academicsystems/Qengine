@@ -207,9 +207,9 @@ def start():
 			if fileblocks.blocks[key][0] == 'qcss':
 				qcss += qhelper.substitute_vars(fileblocks.blocks[key][1],qenginevars)
 			elif fileblocks.blocks[key][0] == 'files':
-				qhelper.get_local_files(fileblocks.blocks[key][1],qpath,genfiles)
+				qhelper.get_local_files(fileblocks.blocks[key][1],key,qpath,genfiles)
 			elif fileblocks.blocks[key][0] == 'qhtml':
-				qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1]),qenginevars)
+				qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1],qenginevars),qenginevars)
 			elif fileblocks.blocks[key][0] == 'qstore':
 				vhtml += qhelper.store_vars_in_html(fileblocks.blocks[key][1],qenginevars,config.QENGINE_SALT,config.QENGINE_IV)
 			elif fileblocks.blocks[key][0] in config.BLOCKS:

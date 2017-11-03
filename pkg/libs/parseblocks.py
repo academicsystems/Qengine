@@ -75,13 +75,7 @@ class Blocks:
 	def __addToBlock(self,line):
 		self.blocks[self.cblock][1] += line
 	
-	# if there is an error in the open tag formatting,
-	# the entire block is just discarded,
-	# other well formatted blocks will be kept
-	def parseFile(self,file,step=0):
-		with open(file) as f:
-			lines = f.read().split('@@@@')[step].splitlines(True)
-		
+	def __parseQengine(self,lines):
 		bsearch = True
 		self.lncnt = 0
 		for line in lines:
@@ -91,4 +85,25 @@ class Blocks:
 			else:
 				bsearch = self.__parseClose(line)
 		self.lncnt = 0
-
+	
+	# if there is an error in the open tag formatting,
+	# the entire block is just discarded,
+	# other well formatted blocks will be kept
+	def parseFile(self,file,step=0):
+		with open(file) as f:
+			lines = f.read().split('@@@@')[step].splitlines(True)
+		
+		self.__parseQengine(lines)
+	
+	def parseString(self,string,step=0):
+		lines = string.split('@@@@')[step].splitlines(True)
+		
+		self.__parseQengine(lines)
+	
+	def parseAllSteps(self,data):
+		blocks = string.split('@@@@')
+		
+		for block in blocks:
+			lines = block.splitlines(True)
+			self.__parseQengine(lines)
+	
