@@ -17,7 +17,7 @@ class QengineTestCase(unittest.TestCase):
 		self.config = Config()
 		self.config.init({
 			'QENGINE_SALT':'must_be_16_24_or_32_chars_long__',
-			'QENGINE_QUESTION_LOCATION':'',
+			'QENGINE_QUESTION_LOCATION':'filesystem',
 			'QENGINE_CACHE_DIR':'',
 			'QENGINE_ENABLE_REMOTE':True,
 			'QENGINE_IV':'must_be_16_long_',

@@ -94,9 +94,9 @@ class Config(object):
 			self.QENGINE_QUESTION_LOCATION = configuration['QENGINE_QUESTION_LOCATION']
 			if self.QENGINE_QUESTION_LOCATION == 'filesystem':
 				pass
-			if self.QENGINE_QUESTION_LOCATION == 'mysql':
+			elif self.QENGINE_QUESTION_LOCATION == 'mysql':
 				pass
-			if self.QENGINE_QUESTION_LOCATION == 'mongodb':
+			elif self.QENGINE_QUESTION_LOCATION == 'mongodb':
 				pass
 			else:
 				print "QENGINE_QUESTION_LOCATION must be 'filesystem', 'mysql', or 'mongodb'"
