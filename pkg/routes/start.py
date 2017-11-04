@@ -82,6 +82,9 @@ def start():
 	id = data['questionID']
 	version = str(data['questionVersion'])
 	
+	# used for file retrieval
+	qpath = './questions/' + base + '/' + id + '/' + version
+	
 	qfile = qio.getQuestion(base,id,version)
 	
 	if qfile == False:
@@ -198,7 +201,7 @@ def start():
 			if fileblocks.blocks[key][0] == 'qcss':
 				qcss += qhelper.substitute_vars(fileblocks.blocks[key][1],qenginevars)
 			elif fileblocks.blocks[key][0] == 'files':
-				qhelper.get_local_files(fileblocks.blocks[key][1],qpath,genfiles)
+				qhelper.get_local_files(fileblocks.blocks[key][1],key,qpath,genfiles)
 			elif fileblocks.blocks[key][0] == 'qhtml':
 				qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1],qenginevars),qenginevars)
 			elif fileblocks.blocks[key][0] == 'qstore':

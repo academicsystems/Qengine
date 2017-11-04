@@ -102,6 +102,9 @@ def process(sid):
 		badfile = {'error':'Invalid path'}
 		return flask.make_response(jsonify(badfile), 400)
 
+	# used for file retrieval
+	qpath = './questions/' + base + '/' + id + '/' + version
+
 	qfile = qio.getQuestion(base,id,version)
 	
 	if qfile == False:
