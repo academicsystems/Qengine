@@ -59,14 +59,18 @@ def postQuestionFile(base,id,version):
 	allblocks.parseAllSteps(questionFile)
 	
 	if(len(allblocks.errors) > 0):
-		return jsonify({'errors':allblocks.errors})
+		return jsonify({'error':allblocks.errors})
 	
 	base = urllib.unquote(base)
 	id = urllib.unquote(id)
 	version = urllib.unquote(version)
 	
 	# make question dir if not exists or create back up of old question file
-	qio.setQuestion(base,id,version,questionFile,True)
+	wresult = qio.setQuestion(base,id,version,questionFile,True)
+	
+	if wresult == False:
+		error= {'error':'Unable to write question file'}
+		return jsonify(error)
 	
 	# check for a block to write question metadata
 	fileblocks = parseblocks.Blocks()
@@ -74,11 +78,18 @@ def postQuestionFile(base,id,version):
 	
 	for key in fileblocks.order:
 		if fileblocks.blocks[key][0] == 'qmetadata':
-			qio.setMetadata(base,id,fileblocks.blocks[key][1])
+			wresult = qio.setMetadata(base,id,fileblocks.blocks[key][1])
+			if wresult == False:
+				error= {'error':'Question file was written, but metadata could not be updated'}
+				return jsonify(error)
 	
 	# if metadata does not exist, make blank metadata file
 	if not qio.getMetadata(base,id):
 		qio.setMetadata(base,id,'')
+		if mresult == False:
+			error= {'error':'Question file was written, but blank metadata file could not be created'}
+			return jsonify(error)
+		
 	
 	return jsonify({'result':'ok'})
 	
