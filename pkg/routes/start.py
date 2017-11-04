@@ -12,12 +12,14 @@ from ..config.qconfig import Config
 from ..libs import parseblocks,qlog
 from ..libs.qcache import SaveToCache
 from ..libs.qhelper import Qhelper
+from ..libs.qio import Qio
 
 qengine_start = Blueprint('qengine_start', __name__)
 @qengine_start.route('/session',methods=['POST'])
 def start():
 	config = Config()
 	qhelper = Qhelper()
+	qio = Qio()
 	
 	# array of errors for question writers
 	question_errors = []
@@ -76,32 +78,21 @@ def start():
 	
 	### OPEN & PARSE QUESTION ###
 	
-	qbasepath = "./questions/" + data['questionBaseURL'] + "/" + data['questionID'] + "/"
+	base = data['questionBaseURL']
+	id = data['questionID']
+	version = str(data['questionVersion'])
 	
-	# grab the question file, possibly from language file if available
-	langfilefound= False
-	if params["language"] is not None:
-		qpath = qbasepath + data['questionVersion'] + params["language"]
-		langfile = qhelper.get_first_file(qpath + "/question")
-		if langfile is not None:
-			qfile = langfile
-			langfilefound= True
-			langfolder = "/" + params["language"]
+	qfile = qio.getQuestion(base,id,version)
 	
-	if not langfilefound:
-		qpath = qbasepath + data['questionVersion']
-		qfile = qhelper.get_first_file(qpath + "/question")
-		langfolder = ''
-	
-	if qfile is None:
+	if qfile == False:
 		badfile = {'error':'The question you requested does not exist'}
 		return flask.make_response(jsonify(badfile), 404)
 	
 	# create the question session ID, should be path to cache
-	qsessionID = data['questionBaseURL'] + "/" + data['questionID'] + "/" + str(data['questionVersion']) + langfolder + "/" + str(params['randomseed'])
+	qsessionID = base + "/" + id + "/" + version + "/" + str(params['randomseed'])
 	
 	fileblocks = parseblocks.Blocks()
-	fileblocks.parseFile(qfile,0)
+	fileblocks.parseString(qfile,0)
 	
 	if(len(fileblocks.errors) > 0):
 		question_errors = question_errors + fileblocks.errors
@@ -207,7 +198,7 @@ def start():
 			if fileblocks.blocks[key][0] == 'qcss':
 				qcss += qhelper.substitute_vars(fileblocks.blocks[key][1],qenginevars)
 			elif fileblocks.blocks[key][0] == 'files':
-				qhelper.get_local_files(fileblocks.blocks[key][1],key,qpath,genfiles)
+				qhelper.get_local_files(fileblocks.blocks[key][1],qpath,genfiles)
 			elif fileblocks.blocks[key][0] == 'qhtml':
 				qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1],qenginevars),qenginevars)
 			elif fileblocks.blocks[key][0] == 'qstore':

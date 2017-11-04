@@ -9,6 +9,7 @@ import yaml # pyyaml
 from ..config.qconfig import Config
 from ..libs import parseblocks,qlog
 from ..libs.qhelper import Qhelper
+from ..libs.qio import Qio
 
 qengine_create = Blueprint('qengine_create', __name__)
 @qengine_create.route('/question/<string:base>/<string:id>/<string:version>',methods=['POST'])
@@ -16,6 +17,12 @@ def postQuestionFile(base,id,version):
 	
 	config = Config()
 	qhelper = Qhelper()
+	qio = Qio()
+	
+	# check if posting question files is enabled on this engine
+	if config.QENGINE_ENABLE_REMOTE != True:
+		notallowed = {'error':'This Qengine does not accpet posting question files.'}
+		return jsonify(notallowed)
 	
 	### INCOMING DATA ###
 
@@ -54,34 +61,24 @@ def postQuestionFile(base,id,version):
 	if(len(allblocks.errors) > 0):
 		return jsonify({'errors':allblocks.errors})
 	
-	# create or update question
-	basepath = qdirname = "./questions/" + urllib.unquote(base) + "/" + urllib.unquote(id) + "/";
-	metafilepath = basepath + "metadata"
-	qdirname = basepath + urllib.unquote(version)
-	qfilepath = qdirname + "/" + "question"
+	base = urllib.unquote(base)
+	id = urllib.unquote(id)
+	version = urllib.unquote(version)
 	
 	# make question dir if not exists or create back up of old question file
-	if not os.path.isdir(qdirname):
-		os.makedirs(qdirname,0750)
-	elif os.path.isfile(qfilepath):
-		stamp = str(time.time())
-		shutil.move(qfilepath,stamp + "_backup")
-		
-	with open(qfilepath,'wb') as file:
-		file.write("%s" % questionFile)
-		
-	fileblocks = parseblocks.Blocks()
-	fileblocks.parseFile(qfilepath,0)
+	qio.setQuestion(base,id,version,questionFile,True)
 	
 	# check for a block to write question metadata
+	fileblocks = parseblocks.Blocks()
+	fileblocks.parseString(questionFile,0)
+	
 	for key in fileblocks.order:
 		if fileblocks.blocks[key][0] == 'qmetadata':
-			with open(metafilepath,'wb') as file:
-				file.write("%s" % fileblocks.blocks[key][1])
+			qio.setMetadata(base,id,fileblocks.blocks[key][1])
 	
 	# if metadata does not exist, make blank metadata file
-	if not os.path.isdir(metafilepath):
-		open(metafilepath,'a').close()
+	if not qio.getMetadata(base,id):
+		qio.setMetadata(base,id,'')
 	
 	return jsonify({'result':'ok'})
 	

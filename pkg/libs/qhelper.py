@@ -13,6 +13,9 @@ import urllib
 
 from ..config.qconfig import Config
 
+#
+# this class contains methods for helping with Qengine features, like creating shortcodes, variable substitution, etc.
+#
 class Qhelper():
 	
 	# config - dict of qengine config keys and values

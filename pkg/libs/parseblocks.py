@@ -86,6 +86,24 @@ class Blocks:
 				bsearch = self.__parseClose(line)
 		self.lncnt = 0
 	
+	# checks step conditional, returns step or step - 1
+	def checkStepConditional(self,data,step,qenginevars):
+		matches = re.findall('@@@@(.*)', data)
+		check = matches[step-1].split('.')
+		
+		# either invalid conditional or no conditional, either way, continue to next step
+		if len(check) > 2:
+			return step
+		
+		# check that conditional exists or not
+		if check[0] in qenginevars:
+			if check[1] in qenginevars[check[0]]:
+				return step
+			else:
+				return step - 1
+		else:
+			return step - 1
+	
 	# if there is an error in the open tag formatting,
 	# the entire block is just discarded,
 	# other well formatted blocks will be kept
