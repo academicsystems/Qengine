@@ -21,7 +21,7 @@ def postQuestionFile(base,id,version):
 	
 	# check if posting question files is enabled on this engine
 	if config.QENGINE_ENABLE_REMOTE != True:
-		notallowed = {'error':'This Qengine does not accpet posting question files.'}
+		notallowed = {'error':'This Qengine does not accept posting question files.'}
 		return jsonify(notallowed)
 	
 	### INCOMING DATA ###
