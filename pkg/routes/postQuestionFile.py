@@ -84,9 +84,9 @@ def postQuestionFile(base,id,version):
 				return jsonify(error)
 	
 	# if metadata does not exist, make blank metadata file
-	if not qio.getMetadata(base,id):
-		qio.setMetadata(base,id,'')
-		if mresult == False:
+	if qio.getMetadata(base,id) == False:
+		wresult = qio.setMetadata(base,id,'')
+		if wresult == False:
 			error= {'error':'Question file was written, but blank metadata file could not be created'}
 			return jsonify(error)
 		

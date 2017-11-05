@@ -1,4 +1,11 @@
+import os
+import os.path
+import shutil
+import time
+import yaml # pyyaml
+
 from ..config.qconfig import Config
+from ..libs import qlog
 from ..libs.qhelper import Qhelper
 
 class Singleton(type):
@@ -28,7 +35,8 @@ class Qio():
 			try:
 				with open(file,'r') as f:
 					return yaml.load(f.read())
-			except:
+			except Exception as e:
+				qlog.loge(str(e))
 				return False
 		else:
 			return False
@@ -39,12 +47,13 @@ class Qio():
 	def _getMetadataMongoDB(self,base,id):
 		return False
 	
-	def _setMetadataFileSystem(self,base,id,metdata):
+	def _setMetadataFileSystem(self,base,id,metadata):
 		metafilepath = "./questions/" + base + "/" + id + "/metadata";
 		try:
 			with open(metafilepath,'wb') as file:
 				file.write("%s" % metadata)
-		except:
+		except Exception as e:
+			qlog.loge(str(e))
 			return False
 		
 		return True
@@ -62,7 +71,8 @@ class Qio():
 		try:
 			with open(qfile) as f:
 				lines = f.read()
-		except:
+		except Exception as e:
+			qlog.loge(str(e))
 			return False
 		
 		return lines
@@ -87,7 +97,8 @@ class Qio():
 		try:
 			with open(qfilepath,'wb') as file:
 				file.write("%s" % questionFile)
-		except:
+		except Exception as e:
+			qlog.loge(str(e))
 			return False
 		
 		return True

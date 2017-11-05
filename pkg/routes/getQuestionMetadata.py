@@ -2,7 +2,6 @@ import flask
 from flask import Blueprint,jsonify,request
 import os.path
 import urllib
-import yaml # pyyaml
 
 from ..config.qconfig import Config
 from ..libs.qhelper import Qhelper
