@@ -1,0 +1,11 @@
+FROM alpine
+
+RUN apk update && apk upgrade
+RUN apk add openssl python2 py-setuptools wget git
+RUN apk add py2-pip gcc g++ make libffi-dev openssl-dev python-dev
+
+RUN pip2.7 install pycrypto flask python-Levenshtein munkres requests pyyaml
+
+RUN git clone https://github.com/academicsystems/Qengine /var/www
+
+WORKDIR "/var/www"

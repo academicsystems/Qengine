@@ -1,0 +1,33 @@
+{%qmetadata:quest
+dev: A question for testing Qengine development
+%}
+
+{%files:questimages
+https://academic.systems/assets/img/favicon.ico
+%}
+
+{%qcss:queststyle
+.class aliceblue { background-color: aliceblue; }
+%}
+
+{%qhtml:questweb
+~~questimages.favicon.ico:IMAGE~~~
+<div class="aliceblue">
+~~questform.number:NUMBER:Enter a number~~~
+~~questform.submit:SUBMIT:Submit~~~
+</div>
+%}
+
+{%qstore:queststore
+perm.qengine.randomseed
+%}
+
+@@@@questform.submit
+
+{%qans:questgrade
+0.9
+%}
+
+{%qhtml:questresult
+Complete. You entered: @@questform.number@@
+%}

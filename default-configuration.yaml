@@ -41,7 +41,7 @@ QENGINE_NO_CACHE: True
 QENGINE_PASSKEY: 
 
 # defaults to 'filesystem', also accepts 'mysql' & 'mongodb'
-QENGINE_QUESTION_LOCATION: 
+QENGINE_QUESTION_LOCATION: 'filesystem'
 
 #
 #

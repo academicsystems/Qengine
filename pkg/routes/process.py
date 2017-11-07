@@ -268,10 +268,17 @@ def process(sid):
 				}
 			};
 			
+			var wm = document.createElement('link');
+			wm.rel = 'author';
+			wm.type = '	text/html';
+			wm.href = 'https://academic.systems';
+			
 			document.getElementsByTagName('head')[0].appendChild(script);
+			document.getElementsByTagName('head')[0].appendChild(wm);
 		}
 
 	</script>
+	<a href="https://academic.systems" rel="author" hidden>Academic Systems</a>
 	"""
 	
 	xhtml = qhtml + vhtml + stephtml + mjaxjs;

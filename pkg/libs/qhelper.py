@@ -6,12 +6,12 @@ import json
 import Levenshtein
 import mimetypes
 import munkres
-import qlog
 import re
 import requests
 import urllib
 
 from ..config.qconfig import Config
+from ..libs import qlog
 
 #
 # this class contains methods for helping with Qengine features, like creating shortcodes, variable substitution, etc.
@@ -87,25 +87,23 @@ class Qhelper():
 			
 			return finput
 		elif len(parts) == 2:		
-			resparts = parts[0].split('.',1)
-			
 			try:
-				src = qenginevars[resparts[0]][resparts[1]]
+				src = parts[0]
 			except Exception as e:
 				self.errors.append('assemble_question_input(): could not find resource in media shortcode ' + shortcode)
 				return ''
 	
 			itype = parts[1].lower()
 			if itype == 'audio':
-				mediatag = '<audio src="%%RESOURCE%%' + src + '"></audio>'
+				mediatag = '<audio src="%%RESOURCES%%' + src + '"></audio>'
 			elif itype == 'embed':
-				mediatag = '<embed src="%%RESOURCE%%' + src + '">'
+				mediatag = '<embed src="%%RESOURCES%%' + src + '">'
 			elif itype == 'image':
-				mediatag = '<img src="%%RESOURCE%%' + src + '">'
+				mediatag = '<img src="%%RESOURCES%%' + src + '">'
 			elif itype == 'script':
-				mediatag = '<script src="%%RESOURCE%%' + src + '"></script>'
+				mediatag = '<script src="%%RESOURCES%%' + src + '"></script>'
 			elif itype == 'video':
-				mediatag = '<video src="%%RESOURCE%%' + src + '"></video>'
+				mediatag = '<video src="%%RESOURCES%%' + src + '"></video>'
 			else:
 				self.errors.append('assemble_question_input(): invalid shortcode type ' + shortcode)
 				mediatag = ''

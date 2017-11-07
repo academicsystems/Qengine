@@ -98,6 +98,8 @@ class Config(object):
 				pass
 			elif self.QENGINE_QUESTION_LOCATION == 'mongodb':
 				pass
+			elif self.QENGINE_QUESTION_LOCATION == None:
+				self.QENGINE_QUESTION_LOCATION = 'filesystem'
 			else:
 				print "QENGINE_QUESTION_LOCATION must be 'filesystem', 'mysql', or 'mongodb'"
 				sys.exit()

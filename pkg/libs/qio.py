@@ -92,7 +92,7 @@ class Qio():
 			os.makedirs(qdirname,0750)
 		elif os.path.isfile(qfilepath) and backup:
 			stamp = str(time.time())
-			shutil.move(qfilepath,stamp + "_backup")
+			shutil.move(qfilepath,qdirname + "/" + stamp + "_backup")
 		
 		try:
 			with open(qfilepath,'wb') as file:

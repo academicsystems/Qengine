@@ -25,9 +25,7 @@ class QengineTestCase(unittest.TestCase):
 			'QENGINE_MOOLE_HACKS':True,
 			'QENGINE_NO_CACHE':True,
 			'QENGINE_PASSKEY':None,
-			'ENGINEINFO_name':'Engine Testing',
-			'PYTHON2_URL':'http://qpython2:9602',
-			'SAGE_URL':'http://qsage:9601'
+			'ENGINEINFO_name':'Engine Testing'
 		})
 		
 		from pkg.routes import app
@@ -86,6 +84,53 @@ class QengineTestCase(unittest.TestCase):
 		
 		data = json.loads(result.data)
 		self.assertIn('error',data)
+	
+	def test_getQuestionMetadata(self):
+		result = self.app.get('/question/core/test/1.0')
+		self.assertEqual(result.status_code,200)
+		
+		data = json.loads(result.data)
+		self.assertIn('questionmetadata',data)
+	
+	def test_start(self):
+		postdata = '{"questionID":"test","questionVersion":"1.0","questionBaseURL":"core","initialParamNames":["randomseed"],"initialParamValues":[807031909],"cachedResources":[]}'
+		
+		result = self.app.post('/session',data=postdata,follow_redirects=True)
+		self.assertEqual(result.status_code,200)
+		self.assertEqual(result.mimetype,'application/json')
+		
+		data = json.loads(result.data)
+		self.assertIn('CSS',data)
+		self.assertIn('XHTML',data)
+		self.assertIn('progressInfo',data)
+		self.assertIn('questionSession',data)
+		self.assertIn('resources',data)
+		
+		# remote file
+		self.assertIn('content',data['resources'][0])
+		self.assertIn('mimeType',data['resources'][0])
+		self.assertIn('filename',data['resources'][0])
+		self.assertIn('encoding',data['resources'][0])
+		
+		self.assertNotIn('errors',data)
+	
+	def test_start_noJson(self):
+		result = self.app.post('/session',data='',follow_redirects=True)
+		self.assertEqual(result.status_code,200)
+		
+		data = json.loads(result.data)
+		self.assertIn('error',data)
+	
+	def test_start_PassKeyRequired(self):
+		self.config.QENGINE_PASSKEY = 'must_be_16_24_or_32_chars_long__'
+		
+		postdata = '{"questionID":"test","questionVersion":"1.0","questionBaseURL":"core","initialParamNames":["randomseed","passKey"],"initialParamValues":[807031909,"sNiHvH1axA%3D%3D:SKLEFEPVTRQNJDYI"],"cachedResources":[]}'
+		
+		result = self.app.post('/session',data=postdata,follow_redirects=True)
+		self.assertEqual(result.status_code,200)
+		
+		data = json.loads(result.data)
+		self.assertNotIn('errors',data)
 	
 	def test_stop_BadRoute(self):
 		result = self.app.delete('/session/../1234')
