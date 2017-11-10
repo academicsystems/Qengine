@@ -84,8 +84,12 @@ else:
 
 @@myq.code@@
 
-answer = fnrc("@@pquest.qstring@@")
-
+try:
+	answer = fnrc("@@pquest.qstring@@")
+	error = ''
+except Exception as e:
+    answer = ''
+    error = str(e)
 %}
 
 {%python2:aquest

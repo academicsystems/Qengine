@@ -7,9 +7,6 @@
 # salt used for encryption
 QENGINE_SALT: must_be_16_24_or_32_chars_long__
 
-# 
-QENGINE_QUESTION_LOCATION: 
-
 #
 #
 ### possibly optional configuration
@@ -25,8 +22,8 @@ QENGINE_CACHE_DIR:
 #
 #
 
-# enables route to accept question files from front-end: PUT /question/base/version/id
-QENGINE_ENABLE_REMOTE:
+# enables route to accept question files from front-end: POST /question/base/version/id
+QENGINE_ENABLE_REMOTE: False
 
 # (recommended) set your own initialization variable for encryption
 QENGINE_IV: must_be_16_long_
@@ -42,6 +39,9 @@ QENGINE_NO_CACHE: True
 
 # add a passkey if required to contact Qengine
 QENGINE_PASSKEY: 
+
+# defaults to 'filesystem', also accepts 'mysql' & 'mongodb'
+QENGINE_QUESTION_LOCATION: 'filesystem'
 
 #
 #

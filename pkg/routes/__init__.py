@@ -23,6 +23,7 @@ def log_request():
 # import routes
 from pkg.routes.getEngineInfo import qengine_einfo
 from pkg.routes.getQuestionMetadata import qengine_qmetadata
+from pkg.routes.postQuestionFile import qengine_create # not part of Opaque spec
 from pkg.routes.start import qengine_start
 from pkg.routes.process import qengine_process
 from pkg.routes.stop import qengine_stop
@@ -30,6 +31,7 @@ from pkg.routes.stop import qengine_stop
 # register route blueprints
 app.register_blueprint(qengine_einfo)
 app.register_blueprint(qengine_qmetadata)
+app.register_blueprint(qengine_create)
 app.register_blueprint(qengine_start)
 app.register_blueprint(qengine_process)
 app.register_blueprint(qengine_stop)

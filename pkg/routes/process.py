@@ -8,14 +8,16 @@ mimetypes.init()
 import re
 
 from ..config.qconfig import Config
-from ..libs.qhelper import Qhelper
 from ..libs import parseblocks,qlog
+from ..libs.qhelper import Qhelper
+from ..libs.qio import Qio
 
 qengine_process = Blueprint('qengine_process', __name__)
 @qengine_process.route('/session/<path:sid>',methods=['POST'])
 def process(sid):
 	config = Config()
 	qhelper = Qhelper()
+	qio = Qio()
 	
 	# array of errors for question writers
 	question_errors = []
@@ -86,28 +88,32 @@ def process(sid):
 	# get path to question from sid: base/questionID/questionVersion/(language)/randomseed
 	pathList = sid.split('/')
 	
-	randomseed = pathList[-1]
-	del pathList[-1]
-	
-	qfile = qhelper.get_first_file('./questions/' + '/'.join(pathList) + '/question')
-	
-	# check for question submit button
 	try:
-		with open(qfile) as f:
-			filedata = f.read()
-			matches = re.findall('@@@@(.*)', filedata)
-			check = matches[step-1].split('.')
-			if check[0] in qenginevars:
-				if check[1] not in qenginevars[check[0]]:
-					step = step - 1
-			else:
-				step = step - 1
+		base = pathList[0]
+		id = pathList[1]
+		version = pathList[2]
+		if len(pathList) == 5:
+			language = pathList[3]
+			randomseed = pathList[4]
+		else:
+			language = ''
+			randomseed = pathList[3]
 	except:
-		step = step - 1
+		badfile = {'error':'Invalid path'}
+		return flask.make_response(jsonify(badfile), 400)
+
+	# used for file retrieval
+	qpath = './questions/' + base + '/' + id + '/' + version
+
+	qfile = qio.getQuestion(base,id,version)
+	
+	if qfile == False:
+		return jsonify({'error':'question no longer exists'})
 	
 	# open and parse next step in question
 	fileblocks = parseblocks.Blocks()
-	fileblocks.parseFile(qfile,step)
+	step = fileblocks.checkStepConditional(qfile,step,qenginevars)
+	fileblocks.parseString(qfile,step)
 	
 	if(len(fileblocks.errors) > 0):
 		question_errors = question_errors + fileblocks.errors
@@ -162,7 +168,7 @@ def process(sid):
 			if fileblocks.blocks[key][0] == 'qcss':
 				qcss += qhelper.substitute_vars(fileblocks.blocks[key][1],qenginevars)
 			elif fileblocks.blocks[key][0] == 'files':
-				qhelper.get_local_files(fileblocks.blocks[key][1],qpath,genfiles)
+				qhelper.get_local_files(fileblocks.blocks[key][1],key,qpath,genfiles)
 			elif fileblocks.blocks[key][0] == 'qans':
 				try:
 					resvar = qhelper.get_stubs('@@',fileblocks.blocks[key][1])[-1]
@@ -171,7 +177,7 @@ def process(sid):
 				except:
 					result = 0
 			elif fileblocks.blocks[key][0] == 'qhtml':
-				qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1]),qenginevars)
+				qhtml += qhelper.substitute_vars(qhelper.substitute_shortcodes(fileblocks.blocks[key][1],qenginevars),qenginevars)
 			elif fileblocks.blocks[key][0] == 'qstore':
 				vhtml += qhelper.store_vars_in_html(fileblocks.blocks[key][1],qenginevars,config.QENGINE_SALT,config.QENGINE_IV)
 			elif fileblocks.blocks[key][0] in config.BLOCKS:
@@ -262,10 +268,17 @@ def process(sid):
 				}
 			};
 			
+			var wm = document.createElement('link');
+			wm.rel = 'author';
+			wm.type = '	text/html';
+			wm.href = 'https://academic.systems';
+			
 			document.getElementsByTagName('head')[0].appendChild(script);
+			document.getElementsByTagName('head')[0].appendChild(wm);
 		}
 
 	</script>
+	<a href="https://academic.systems" rel="author" hidden>Academic Systems</a>
 	"""
 	
 	xhtml = qhtml + vhtml + stephtml + mjaxjs;

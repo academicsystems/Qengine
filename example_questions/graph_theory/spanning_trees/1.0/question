@@ -4,7 +4,7 @@ import networkx
 
 g = Graph(networkx.gnp_random_graph(7,0.3,seed=@@qengine.randomseed@@))
 
-while len(g.spanning_trees()) <5 or len(g.spanning_trees())>20:
+while len(g.spanning_trees()) < 5 or len(g.spanning_trees()) > 20:
     g = Graph(networkx.gnp_random_graph(7,0.3))
 
 gp = g.plot()
@@ -52,15 +52,15 @@ answer = len(g.spanning_trees())
 	<table>
 		<tr valign="top">
 			<td>
-				A local image:<br><img src="%%RESOURCES%%sagemath-v2.png" width="100">
+				A local image:<br><img src="%%RESOURCES%%myfiles.sagemath-v2.png" width="100">
 			</td>
 			<td>
-				A remote image:<br><img src="%%RESOURCES%%sage_logo_new_l_hc_edgy-nq8.png" width="300">
+				A remote image:<br><img src="%%RESOURCES%%myfiles.sage_logo_new_l_hc_edgy-nq8.png" width="300">
 			</td>
 		</tr>
 	</table><br>
     <p>A SageMath generated image for this question:<br>
-    	<img src="%%RESOURCES%%@@mysage._graphfile@@"></script>
+    	<img src="%%RESOURCES%%@@mysage._graphfile@@">
     </p><br>
     <h4>Variables</h4><br>
     <p>

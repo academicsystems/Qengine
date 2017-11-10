@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/academicsystems/Qengine.svg?branch=master)](https://travis-ci.org/academicsystems/Qengine)
+
 # Qengine
 A powerful quiz engine for learning management systems
 
