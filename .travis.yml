@@ -4,7 +4,6 @@ language: python
 
 before_install:
   - sudo apt-get update
-  - sudo apt-get upgrade -y
   - sudo apt-get install -y git openssl wget
   - sudo apt-get install -y build-essential libssl-dev libffi-dev python-dev
   - sudo wget https://bootstrap.pypa.io/get-pip.py
