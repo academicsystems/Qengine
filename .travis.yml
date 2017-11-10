@@ -11,6 +11,7 @@ before_install:
 
 install:
   - sudo pip2.7 install pycrypto flask python-Levenshtein munkres requests pyyaml
+  # this is only needed for Travis CI's build (http://docs.python-requests.org/en/master/community/faq/)
   - sudo pip2.7 install ndg-httpsclient pyasn1 pyopenssl
 
 before_script:
