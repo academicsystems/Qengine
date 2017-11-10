@@ -11,6 +11,7 @@ before_install:
 
 install:
   - sudo pip2.7 install pycrypto flask python-Levenshtein munkres requests pyyaml
+  - sudo pip2.7 ndg-httpsclient pyasn1 pyopenssl
 
 before_script:
   - sudo mv example_questions questions
