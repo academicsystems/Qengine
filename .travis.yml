@@ -3,18 +3,18 @@ sudo: required
 language: python
 
 before_install:
-  - apt-get update
-  - apt-get upgrade -y
-  - apt-get install -y git openssl wget
-  - apt-get install -y build-essential libssl-dev libffi-dev python-dev
-  - wget https://bootstrap.pypa.io/get-pip.py
-  - python2.7 get-pip.py
+  - sudo apt-get update
+  - sudo apt-get upgrade -y
+  - sudo apt-get install -y git openssl wget
+  - sudo apt-get install -y build-essential libssl-dev libffi-dev python-dev
+  - sudo wget https://bootstrap.pypa.io/get-pip.py
+  - sudo python2.7 get-pip.py
 
 install:
-  - pip2.7 install pycrypto flask python-Levenshtein munkres requests pyyaml
+  - sudo pip2.7 install pycrypto flask python-Levenshtein munkres requests pyyaml
 
 before_script:
-  - mv example_questions questions
+  - sudo mv example_questions questions
 
 script:
-  - python -m tests.test_Core
+  - sudo python -m tests.test_Core
