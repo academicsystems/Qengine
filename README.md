@@ -3,9 +3,23 @@
 # Qengine
 A powerful quiz engine for learning management systems
 
+## How It Works
+
+Qengine is a back-end that assembles resources into a quiz. There are two important attributes that make Qengine powerful:
+
+1. Each student is assigned a random number identifier ("random seed")
+
+That means you can use the random number to generate a different question version for each student.
+
+2. Qengine can get resources from microservices.
+
+That means you can generate resources using code like SageMath, Python, Javascript, etc. That also means you can use code to autograde students' answers.
+
 ## Running Qengine
 
-`python -m qengine`
+Edit `default-configuration.yaml` and rename to `configuration.yaml`
+
+Then run: `python -m qengine`
 
 ## Running Single Test
 
