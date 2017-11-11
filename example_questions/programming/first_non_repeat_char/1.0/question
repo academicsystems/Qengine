@@ -86,10 +86,10 @@ else:
 
 try:
 	answer = fnrc("@@pquest.qstring@@")
-	error = ''
+	serror = ''
 except Exception as e:
     answer = ''
-    error = str(e)
+    serror = str(e)
 %}
 
 {%python2:aquest
@@ -134,7 +134,7 @@ else:
 		If your code threw any errors, they are displayed below:
 	</p>
 	<code>
-		@@nquest.error@@
+		@@nquest.serror@@
 	</code>
 </div>
 
