@@ -17,12 +17,12 @@ from ..libs import qlog
 def process_python2_code(key,pycode,reqvars,qenginevars,cachedresources,genfiles,question_errors):
 	# run code & get variables (key is py block namespace, check if there are reqvars for it)
 	if key in reqvars:
-		pyjson = {"python":pycode,"vars":reqvars[key]}
+		pyjson = {"code":pycode,"vars":reqvars[key]}
 	else:
-		pyjson = {"python":pycode,"vars":[]}
+		pyjson = {"code":pycode,"vars":[]}
 	
 	header = {'Content-Type':'application/json','Accept':'application/json'}
-	response = requests.post(PYTHON2_URL + '/python',data = json.dumps(pyjson),headers = header)
+	response = requests.post(PYTHON2_URL + '/service',data = json.dumps(pyjson),headers = header)
 	
 	if response.status_code != 200:
 		qlog.loge('python2 block returning status code: ' + response.status_code)
