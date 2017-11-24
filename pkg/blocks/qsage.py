@@ -22,7 +22,7 @@ def process_sage_code(key,sagecode,reqvars,qenginevars,cachedresources,genfiles,
 		sagejson = {"sage":sagecode,"vars":[]}
 	
 	header = {'Content-Type':'application/json','Accept':'application/json'}
-	response = requests.post(SAGE_URL + '/sage',data = json.dumps(sagejson),headers = header)
+	response = requests.post(SAGE_URL + '/service',data = json.dumps(sagejson),headers = header)
 	
 	if response.status_code != 200:
 		qlog.loge('sage block returning status code: ' + response.status_code)

@@ -20,7 +20,7 @@ def process_any_code(key,code,reqvars,qenginevars,cachedresources,genfiles,quest
 		cjson = {"code":code,"vars":[]}
 	
 	header = {'Content-Type':'application/json','Accept':'application/json'}
-	response = requests.post(CODE_URL + '/code',data = json.dumps(cjson),headers = header)
+	response = requests.post(CODE_URL + '/service',data = json.dumps(cjson),headers = header)
 	
 	if response.status_code != 200:
 		qlog.loge('code block returning status code: ' + response.status_code)

@@ -32,7 +32,7 @@ QENGINE_IV: must_be_16_long_
 QENGINE_LOG_REQUESTS: False
 
 # enable this if using Moodle
-QENGINE_MOOLE_HACKS: False
+QENGINE_MOODLE_HACKS: False
 
 # enable this to disable caching
 QENGINE_NO_CACHE: True
