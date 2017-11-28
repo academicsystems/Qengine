@@ -342,6 +342,8 @@ class Qhelper():
 				for match in matches:
 					keys = match.split('.')
 					try:
+						if vars[keys[0]][keys[1]][0] == '':
+							raise Exception('Missing Requested Variable')
 						replacestub = str(vars[keys[0]][keys[1]][0]).replace('\\','\\\\'); ### code @@ns.var[1]@@ , grabs alternate version
 					except Exception as e:
 						self.errors.append('substitute_vars(): cannot substitute ' + match + ', does not exist yet or was not created. perhaps you are trying to use it in a block before the block that creates it?')
