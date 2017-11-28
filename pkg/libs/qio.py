@@ -34,7 +34,11 @@ class Qio():
 		if file is not None:
 			try:
 				with open(file,'r') as f:
-					return yaml.load(f.read())
+					metadata = yaml.load(f.read())
+				if metadata == None:
+					return {'metadata':'empty'}
+				else:
+					return metadata
 			except Exception as e:
 				qlog.loge(str(e))
 				return False
