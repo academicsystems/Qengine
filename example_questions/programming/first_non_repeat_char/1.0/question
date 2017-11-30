@@ -43,7 +43,7 @@ def fnrc(qstring):
 %}
 
 {%qstore:mystore
-	temp.qengine.randomseed
+	qengine.randomseed
 %}
 
 @@@@myq.submit

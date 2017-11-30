@@ -24,6 +24,7 @@ class Config(object):
 	QENGINE_SALT = ''
 	QENGINE_IV = ''
 	QENGINE_LOG_REQUESTS = False
+	QENGINE_LOG_RESPONSE = False
 	QENGINE_MOODLE_HACKS = False
 	QENGINE_NO_CACHE = False
 	QENGINE_PASSKEY = None
@@ -109,6 +110,7 @@ class Config(object):
 		# optional environment variables
 		self.QENGINE_ENABLE_REMOTE = self._loadConfigOption('QENGINE_ENABLE_REMOTE',False,configuration)
 		self.QENGINE_LOG_REQUESTS = self._loadConfigOption('QENGINE_LOG_REQUESTS',False,configuration)
+		self.QENGINE_LOG_RESPONSE = self._loadConfigOption('QENGINE_LOG_RESPONSE',False,configuration)
 		self.QENGINE_MOODLE_HACKS = self._loadConfigOption('QENGINE_MOODLE_HACKS',False,configuration)
 		self.QENGINE_NO_CACHE = self._loadConfigOption('QENGINE_NO_CACHE',False,configuration)
 		self.QENGINE_PASSKEY = self._loadConfigOption('QENGINE_PASSKEY',None,configuration)

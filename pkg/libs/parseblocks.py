@@ -86,7 +86,7 @@ class Blocks:
 				bsearch = self.__parseClose(line)
 		self.lncnt = 0
 	
-	# checks step conditional, returns step or step - 1
+	# checks step conditional, returns: step, step - 1 (conditional not met), step - 0.5 (conditional not met, but run grading in next step)
 	def checkStepConditional(self,data,step,qenginevars):
 		matches = re.findall('@@@@(.*)', data)
 		check = matches[step-1].split('.')
@@ -100,9 +100,19 @@ class Blocks:
 			if check[1] in qenginevars[check[0]]:
 				return step
 			else:
-				return step - 1
+				pass
 		else:
-			return step - 1
+			pass
+		
+		# if here, previous step must run, but check if we can grade in next step
+		tmp = Blocks()
+		tmp.parseString(data,step)
+		for key in tmp.blocks:
+			if tmp.blocks[key][0] == 'qans':
+				return step - 0.5
+		
+		# if here, there is no 'qans' block in next step, so no grade will happen, just return previous step
+		return step - 1
 	
 	# if there is an error in the open tag formatting,
 	# the entire block is just discarded,
@@ -125,3 +135,8 @@ class Blocks:
 			lines = block.splitlines(True)
 			self.__parseQengine(lines)
 	
+	def reset(self):
+		self.errors = []
+		self.blocks = {}
+		self.cblock = ''
+		self.order = []

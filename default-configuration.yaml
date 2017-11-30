@@ -28,8 +28,11 @@ QENGINE_ENABLE_REMOTE: False
 # (recommended) set your own initialization variable for encryption
 QENGINE_IV: must_be_16_long_
 
-# save all requests to logs/requests.log
+# save all requests to logs/request.log
 QENGINE_LOG_REQUESTS: False
+
+# save all responses to logs/response.log
+QENGINE_LOG_RESPONSE: False
 
 # enable this if using Moodle
 QENGINE_MOODLE_HACKS: False

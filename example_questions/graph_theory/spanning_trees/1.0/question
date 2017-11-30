@@ -138,8 +138,8 @@ answer = len(g.spanning_trees())
 %}
 
 {%qstore:mystore
-	temp.qengine.randomseed
-	perm.mysage.answer
+	qengine.randomseed
+	mysage.answer
 %}
 
 @@@@mynm.submit

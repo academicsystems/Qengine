@@ -19,7 +19,7 @@ https://academic.systems/assets/img/favicon.ico
 %}
 
 {%qstore:queststore
-perm.qengine.randomseed
+qengine.randomseed
 %}
 
 @@@@questform.submit
