@@ -36,26 +36,36 @@ def process(sid):
 	formVars = dict(zip(data['names'],data['values']))
 	
 	# get variables from form data into qenginevars
+	storedvars = {}
 	qenginevars = {}
 	othervars = {}
 	try:
 		for key, value in formVars.iteritems():
-			aesObj = AES.new(config.QENGINE_SALT, AES.MODE_CFB, config.QENGINE_IV)
+			aesObj = AES.new(config.QENGINE_SALT, AES.MODE_CFB, config.QENGINE_IV) # has to be created for each decrypt
+			
 			if config.QENGINE_MOODLE_HACKS:
 				key = key.replace('_','.')
+			
 			splitkey = key.split('.')
+			
+			# base64 encoded & encrypted stored variable
 			if len(splitkey) == 3:
-				# base64 encoded & encrypted stored variable
+				tval = aesObj.decrypt(base64.b64decode(value))
+			
+				# previous stored var, keep just these on reruns
+				if splitkey[0] == 'p':
+					if splitkey[1] in storedvars:
+						storedvars[splitkey[1]][splitkey[2]] = [tval]
+					else:
+						storedvars[splitkey[1]]= {}
+						storedvars[splitkey[1]][splitkey[2]] = [tval]
+
 				if splitkey[1] in qenginevars:
-					qenginevars[splitkey[1]][splitkey[2]] = [aesObj.decrypt(base64.b64decode(value))] # has to be created for each decrypt
+					qenginevars[splitkey[1]][splitkey[2]] = [tval]
 				else:
 					qenginevars[splitkey[1]]= {}
-					qenginevars[splitkey[1]][splitkey[2]] = [aesObj.decrypt(base64.b64decode(value))] # has to be created for each decrypt
-				
-				## !! splitkey[0] -> perm or temp, if perm : do something...
-				
+					qenginevars[splitkey[1]][splitkey[2]] = [tval]
 			elif len(splitkey) == 2:
-				# some variable entered by student or manually created in qhtml
 				if splitkey[0] in qenginevars:
 					qenginevars[splitkey[0]][splitkey[1]] = [value]
 				else:
@@ -80,10 +90,19 @@ def process(sid):
 		elif presult == 3:
 			return jsonify({'error':'invalid passkey'})
 	
+	### CHECK FOR -finish, which indicates question was never submitted ###
+	if "-finish" in othervars:
+		opData = {'CSS':'','XHTML':'','progressInfo':-1,'questionEnd':True,'results':'','resources':[]}
+		return jsonify(opData)
+	
 	### DETERMINE AND GET QUESTION STEP ###
 	
 	# parse next step in question
-	step = int(qenginevars['qengine']['step'][0]) + 1
+	try:
+		step = int(qenginevars['qengine']['step'][0]) + 1
+	except:
+		qlog.loge('qengine.step is missing. ' + str(qenginevars))
+		return jsonify({'errors':'qengine.step is missing'})
 	
 	# get path to question from sid: base/questionID/questionVersion/(language)/randomseed
 	pathList = sid.split('/')
@@ -112,7 +131,23 @@ def process(sid):
 	
 	# open and parse next step in question
 	fileblocks = parseblocks.Blocks()
-	step = fileblocks.checkStepConditional(qfile,step,qenginevars)
+	cstep = fileblocks.checkStepConditional(qfile,step,qenginevars)
+	
+	# if this was a rerun, only store previously stored vars, otherwise, store everything; this helps maintain stateless engine
+	if cstep != step:
+		restore = storedvars
+	else:
+		restore = qenginevars.copy()
+	
+	step = int(cstep)
+	
+	# there seems to be a bug in moodle where returning results ends any further question processing, so we can't handle this yet
+	if cstep % 1 == 0.5:
+		pass
+	
+	results = None
+	questionEnd = None
+	
 	fileblocks.parseString(qfile,step)
 	
 	if(len(fileblocks.errors) > 0):
@@ -186,10 +221,9 @@ def process(sid):
 					config.BLOCKS[fileblocks.blocks[key][0]](key,subblock,reqvars,qenginevars,cachedresources,genfiles,question_errors)
 				except Exception as e:
 					qlog.loge(str(e) + ' blocktype: ' + fileblocks.blocks[key][0])
-	
+
 	### FINAL RESPONSE ASSEMBLY
 	
-	questionEnd = False
 	if result is not None:
 		results = {
 			"actionSummary" : '',
@@ -205,31 +239,16 @@ def process(sid):
 			]
 		}
 		questionEnd = True
-	else:
-		results = ''
 	
-	### FOR TESTING PURPOSES, see what data is sent if we force a "-finish"
-	#questionEnd = False
-	#results = ''
+	# this is where we restore variables
+	stephtml = ''
+	for key in restore:
+		for index in restore[key]:
+			# don't store step, this is always regenerated
+			if key != 'qengine' or index != 'step':
+				stephtml += qhelper.store_perm_in_html('p.' + key + '.' + index,restore[key][index][0],config.QENGINE_SALT,config.QENGINE_IV)
 	
-	if "-finish" in othervars:
-		questionEnd = True
-		results = {
-			"actionSummary" : "action summary",
-			"answerLine" : "answer",
-			"attempts" : step,
-			"customResults" : [],
-			"questionLine" : "question summary",
-			"scores" : [
-				{
-					"axis" : "",
-					"marks" : 0
-				}
-			]
-		};
-	
-	aesObj = AES.new(config.QENGINE_SALT, AES.MODE_CFB, config.QENGINE_IV)
-	stephtml = "<input type='hidden' name='%%IDPREFIX%%temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt(str(step))) + "'>"
+	stephtml += qhelper.store_perm_in_html('c.qengine.step',str(step),config.QENGINE_SALT,config.QENGINE_IV)
 	
 	# assemble final html with mathjax included	
 	mjaxjs = """
@@ -284,6 +303,12 @@ def process(sid):
 	xhtml = qhtml + vhtml + stephtml + mjaxjs;
 	
 	question_errors = question_errors + qhelper.errors
+	
+	# ensure values for these
+	if questionEnd == None:
+		questionEnd = False
+	if results == None:
+		results = ''
 	
 	if len(question_errors) > 0:
 		opData = {'CSS':qcss,'XHTML':xhtml,'progressInfo':step,'questionEnd':questionEnd,'results':results,'resources':genfiles,'errors':question_errors}

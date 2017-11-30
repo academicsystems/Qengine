@@ -79,14 +79,14 @@ Pmatrix = latex(P)
 %}
 
 {%qstore:mystore
-	temp.qengine.randomseed
-	temp.mysage.Amatrix
-	temp.mysage.Lmatrix
-	temp.mysage.Umatrix
-	temp.mysage.Pmatrix
-	temp.mysage.Lower
-	temp.mysage.Upper
-	temp.mysage.Permutation
+	qengine.randomseed
+	mysage.Amatrix
+	mysage.Lmatrix
+	mysage.Umatrix
+	mysage.Pmatrix
+	mysage.Lower
+	mysage.Upper
+	mysage.Permutation
 %}
 
 @@@@myq.submit

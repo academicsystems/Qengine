@@ -88,8 +88,8 @@ _graphfile = save(GP,'.png',{})
 %}
 
 {%qstore:mystore
-	temp.qengine.randomseed
-	temp.mysage.answer
+	qengine.randomseed
+	mysage.answer
 %}
 
 @@@@myq.submit

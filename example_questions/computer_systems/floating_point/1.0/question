@@ -213,13 +213,13 @@ else:
 %}
 
 {%qstore:mystore
-	temp.qengine.randomseed
-	temp.qpython.expdec
-	temp.qpython.E
-	temp.qpython.pE
-	temp.qpython.f
-	temp.qpython.M
-	temp.qpython.V
+	qengine.randomseed
+	qpython.expdec
+	qpython.E
+	qpython.pE
+	qpython.f
+	qpython.M
+	qpython.V
 %}
 
 @@@@myq.submit

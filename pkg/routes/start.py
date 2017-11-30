@@ -5,6 +5,7 @@ from flask import Blueprint,jsonify,request
 import json
 import mimetypes
 mimetypes.init()
+import re
 import os
 import os.path
 
@@ -223,8 +224,13 @@ def start():
 	
 	### FINAL RESPONSE ASSEMBLY ###
 	
-	aesObj = AES.new(config.QENGINE_SALT, AES.MODE_CFB, config.QENGINE_IV)
-	stephtml = "<input type='hidden' name='%%IDPREFIX%%temp.qengine.step' value='" + base64.b64encode(aesObj.encrypt('0')) + "'>"
+	stephtml = ''
+	try:
+		# always store qengine.randomseed in case the first step or any other needs it again
+		stephtml += qhelper.store_perm_in_html('p.qengine.randomseed',qenginevars['qengine']['randomseed'][0],config.QENGINE_SALT,config.QENGINE_IV)
+		stephtml += qhelper.store_perm_in_html('c.qengine.step','0',config.QENGINE_SALT,config.QENGINE_IV)
+	except Exception as e:
+		qlog.loge(str(e) + '. Could not store vars into stephtml')
 	
 	# assemble final html with mathjax included	
 	mjaxjs = """

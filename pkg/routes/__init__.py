@@ -20,6 +20,13 @@ def log_request():
 			file.write("%s %s\n%s%s\n\n" % (request.method, request.url, request.headers, request.get_json(silent=True)))
 	return None
 
+@app.after_request
+def log_response(response):
+	if config.QENGINE_LOG_RESPONSE:
+		with open('./logs/response.log','a+') as file:
+			file.write("%s\n%s%s\n\n" % (response.status, response.headers, response.get_data()))
+	return response
+
 # import routes
 from pkg.routes.getEngineInfo import qengine_einfo
 from pkg.routes.getQuestionMetadata import qengine_qmetadata

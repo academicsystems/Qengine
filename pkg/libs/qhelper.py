@@ -113,7 +113,7 @@ class Qhelper():
 			self.errors.append('assemble_question_input(): invalid shortcode format ' + shortcode)
 			return ''
 	
-	def _check_varname(self,varname,qstore=False):
+	def _check_varname(self,varname):
 		# cannot use underscores with Moodle because PHP replaces dots with underscores
 		if self.config.QENGINE_MOODLE_HACKS == True:
 			matches = re.findall('[^.]_', varname)
@@ -122,18 +122,9 @@ class Qhelper():
 		
 		splitvar = varname.split('.')
 		
-		if qstore:
-			# qstore block variable names must be: temp/perm.namespace.variable
-			if(len(splitvar) != 3):
-				return False
-			else:
-				vtype = splitvar[0]
-				if vtype != 'perm' and vtype != 'temp':
-					return False
-		else:
-			# variable names must be: namespace.variable
-			if(len(splitvar) != 2):
-				return False
+		# variable names must be: namespace.variable
+		if(len(splitvar) != 2):
+			return False
 		
 		return True
 	
@@ -290,15 +281,15 @@ class Qhelper():
 		for line in lines:
 			variable = line.strip()
 			
-			if not self._check_varname(variable,True):
+			if not self._check_varname(variable):
 				self.errors.append('get_qstore_vars(): invalid variable name: ' + variable)
 			else:
 				parts = variable.split('.')
 				# ignore parts[0], this function is just for adding qstore variables to reqvars
-				if parts[1] not in reqvars:
-					reqvars[parts[1]] = []
-				if parts[2] not in reqvars[parts[1]]:
-					reqvars[parts[1]].append(parts[2])
+				if parts[0] not in reqvars:
+					reqvars[parts[0]] = []
+				if parts[1] not in reqvars[parts[0]]:
+					reqvars[parts[0]].append(parts[1])
 		
 		return reqvars
 	
@@ -310,14 +301,18 @@ class Qhelper():
 			name = line.strip()
 			nparts = name.split('.')
 			try:
-				#! do somehting with perm or temp -> nparts[0]
-				value = str(qenginevars[nparts[1]][nparts[2]][0])
+				# no need to store qengine vars, that is done automatically elsewhere
+				if nparts[0] != 'qengine':
+					value = str(qenginevars[nparts[0]][nparts[1]][0])
+					vhtml += "<input type='hidden' name='%%IDPREFIX%%c." + name + "' value='" + base64.b64encode(aesObj.encrypt(value)) + "'>"
 			except:
 				self.errors.append('store_vars_in_html(): trying to qstore variable that does not exist, ' + name)
-				value = ''
-			vhtml += "<input type='hidden' name='%%IDPREFIX%%" + name + "' value='" + base64.b64encode(aesObj.encrypt(value)) + "'>"
 		
 		return vhtml
+	
+	def store_perm_in_html(self,name,value,salt,iv):
+		aesObj = AES.new(salt, AES.MODE_CFB, iv) # has to be created for each encrypt
+		return "<input type='hidden' name='%%IDPREFIX%%" + str(name).strip() + "' value='" + base64.b64encode(aesObj.encrypt(str(value))) + "'>"
 	
 	def substitute_shortcodes(self,sblock,qenginevars):
 		delimiter = '~~~'
@@ -342,8 +337,6 @@ class Qhelper():
 				for match in matches:
 					keys = match.split('.')
 					try:
-						if vars[keys[0]][keys[1]][0] == '':
-							raise Exception('Missing Requested Variable')
 						replacestub = str(vars[keys[0]][keys[1]][0]).replace('\\','\\\\'); ### code @@ns.var[1]@@ , grabs alternate version
 					except Exception as e:
 						self.errors.append('substitute_vars(): cannot substitute ' + match + ', does not exist yet or was not created. perhaps you are trying to use it in a block before the block that creates it?')
