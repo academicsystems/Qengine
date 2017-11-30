@@ -17,9 +17,9 @@ from ..libs import qlog
 def process_sage_code(key,sagecode,reqvars,qenginevars,cachedresources,genfiles,question_errors):	
 	# run code & get variables (key is sage block namespace, check if there are reqvars for it)
 	if key in reqvars:
-		sagejson = {"sage":sagecode,"vars":reqvars[key]}
+		sagejson = {"code":sagecode,"vars":reqvars[key]}
 	else:
-		sagejson = {"sage":sagecode,"vars":[]}
+		sagejson = {"code":sagecode,"vars":[]}
 	
 	header = {'Content-Type':'application/json','Accept':'application/json'}
 	response = requests.post(SAGE_URL + '/service',data = json.dumps(sagejson),headers = header)
