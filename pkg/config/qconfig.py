@@ -51,10 +51,10 @@ class Config(object):
 		if inconfig != None:
 			configuration = inconfig
 		else:
-			if os.path.isfile('./configuration.yaml'):
-				config_file = './configuration.yaml';
-			elif os.path.isfile('./default-configuration.yaml'):
-				config_file = './default-configuration.yaml';
+			if os.path.isfile('./config/configuration.yaml'):
+				config_file = './config/configuration.yaml';
+			elif os.path.isfile('./config/default-configuration.yaml'):
+				config_file = './config/default-configuration.yaml';
 				print 'WARNING: Using default-configuration.yaml. You should supply your own configuration.yaml file'
 			else:
 				print 'FATAL ERROR: Could not find configuration.yaml file!'

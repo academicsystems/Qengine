@@ -1,4 +1,4 @@
 *.pyc
-questions
-configuration.yaml
 qlog.txt
+config/configuration.yaml
+volume

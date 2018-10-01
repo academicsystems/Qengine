@@ -1,0 +1,23 @@
+version: '3.3'
+services:
+  qengine:
+    image: "asystems/qengine:latest"
+    container_name: "qengine"
+    ports:
+     - "9600:9600"
+    volumes:
+      - ./config:/var/www/config # config
+      - ./assets/ssldomain:/etc/lighttpd/ssldomain # config
+      - ./volume/questions:/var/www/questions # data
+      - ./volume/qengine_cache:/tmp/qengine_cache # data
+  sage:
+    image: "asystems/sagemath:latest"
+    container_name: "sage"
+    expose:
+     - "9601"
+  python2:
+    image: "asystems/python2.7:latest"
+    container_name: "python2"
+    expose:
+     - "9602"
+

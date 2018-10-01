@@ -1,0 +1,20 @@
+#!/bin/ash
+
+source /etc/lighttpd/ssldomain
+
+if [[ -n $DOMAIN ]]; then
+
+mkdir -p /etc/lighttpd/ssl
+rm -rf /etc/lighttpd/ssl/*
+
+openssl genrsa -des3 -passout pass:x -out /etc/lighttpd/ssl/qengine.pass.key 2048
+openssl rsa -passin pass:x -in /etc/lighttpd/ssl/qengine.pass.key -out /etc/lighttpd/ssl/qengine.key
+rm /etc/lighttpd/ssl/qengine.pass.key
+openssl req -new -key /etc/lighttpd/ssl/qengine.key -out /etc/lighttpd/ssl/qengine.csr -subj "/CN=$DOMAIN"
+openssl x509 -req -days 3650 -in /etc/lighttpd/ssl/qengine.csr -signkey /etc/lighttpd/ssl/qengine.key -out /etc/lighttpd/ssl/qengine.crt
+cat /etc/lighttpd/ssl/qengine.key /etc/lighttpd/ssl/qengine.crt > /etc/lighttpd/ssl/qengine.pem
+chmod 400 /etc/lighttpd/ssl/*
+
+fi
+
+lighttpd -D -f /etc/lighttpd/lighttpd.conf
